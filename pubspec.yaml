@@ -1,0 +1,22 @@
+name: registrar
+description: A flexible hybrid locator that supports both single services (like GetIt) and inherited models (like Provider).
+version: 0.4.0
+repository: https://github.com/buttonsrtoys/registrar
+issue_tracker: https://github.com/buttonsrtoys/registrar/issues
+
+environment:
+  sdk: ">=2.17.1 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  equatable: ^2.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
