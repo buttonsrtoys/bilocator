@@ -37,7 +37,7 @@ Adding inherited models to the widget tree uses the same Bilocator widget, but w
 ```dart
 Bilocator<MyModel>(
   builder: () => MyModel(),
-  inherited: true,
+  location: Location.tree,
   child: MyWidget(),
 );
 ```
