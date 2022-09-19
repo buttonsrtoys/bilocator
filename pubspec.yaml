@@ -1,5 +1,5 @@
 name: bilocator
-description: A hybrid locator that supports both single services (like GetIt) and inherited models (like Provider, InheritedWidget).
+description: A Flutter hybrid locator that supports both single services (like GetIt) and inherited models (like Provider, InheritedWidget).
 version: 0.5.0
 repository: https://github.com/buttonsrtoys/bilocator
 issue_tracker: https://github.com/buttonsrtoys/bilocator/issues

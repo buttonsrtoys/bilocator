@@ -2,7 +2,7 @@
 
 ![bilocator logo](https://github.com/buttonsrtoys/bilocator/blob/main/assets/BilocatorLogo.png)
 
-A flexible hybrid locator that supports both single services (like GetIt) and inherited models (like Provider).
+A Flutter hybrid locator that supports both single services (like GetIt) and inherited models (like Provider, InheritedWidget).
 
 Bilocator goals:
 - Locate single services from global registry.
@@ -37,7 +37,7 @@ Adding inherited models to the widget tree uses the same Bilocator widget, but w
 ```dart
 Bilocator<MyModel>(
   builder: () => MyModel(),
-  inherited: true,
+  location: Location.tree,
   child: MyWidget(),
 );
 ```

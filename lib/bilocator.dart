@@ -262,7 +262,7 @@ extension BilocatorBuildContextExtension on BuildContext {
     final _BilocatorInheritedWidget<T>? inheritedWidget =
         dependOnInheritedWidgetOfExactType<_BilocatorInheritedWidget<T>>();
     if (inheritedWidget == null) {
-      throw Exception('BuildContext.of<T>() did not find inherited widget Bilocator<$T>(inherited: true)');
+      throw Exception('BuildContext.of<T>() did not find inherited widget Bilocator<$T>()');
     }
     return inheritedWidget.instance;
   }
@@ -502,7 +502,7 @@ mixin Observer {
 
   /// Registers an inherited object.
   ///
-  /// [register] is a handy but rarely needed function. Bilocator(inherited: true) widgets are accessible from their
+  /// [register] is a handy but rarely needed function. Bilocator(location: Location.tree) widgets are accessible from their
   /// descendants only. Occasionally, access is required by a widget that is not a descendant. In such cases, you can
   /// make the inherited model globally available by registering it.
   /// [name] is assigned to the registered model. [name] is NOT used for locating the object.
@@ -517,7 +517,7 @@ mixin Observer {
   ///
   /// [name] is the value given when registering. Note that unlike [Bilocator.unregister] this function does not call
   /// the dispose function of the object if it is a ChangeNotifier because it is unregistering an instance that still
-  /// exists in the widget tree. I.e., it was created with Bilocator(inherited: true).
+  /// exists in the widget tree. I.e., it was created with Bilocator(location: Location.tree).
   void unregister<T extends Object>(BuildContext context, {String? name}) {
     context._getInheritedWidget<T>().registered.value = false;
     Bilocator.unregister<T>(name: name, dispose: false);
