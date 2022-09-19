@@ -1,4 +1,4 @@
-## Add inherited models to RegistrarDelegate
+## Add inherited models to BilocatorDelegate
 
 Currently only supports single services.
 

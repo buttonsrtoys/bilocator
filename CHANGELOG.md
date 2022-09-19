@@ -1,3 +1,6 @@
+## 0.5.0
+- Renamed package from Registrar to Bilocator.
+
 ## 0.4.0 
 - Added "location" param Registrar to be used instead of "inherited" param.
 - Bug fix where attempted to add listener non-ChangeNotifier.

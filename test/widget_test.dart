@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:registrar/registrar.dart';
+import 'package:bilocator/bilocator.dart';
 
 const _number = 42;
 const _incrementButtonText = 'Increment';
@@ -17,7 +17,7 @@ Widget testApp({
   required bool listen,
 }) =>
     MaterialApp(
-      home: Registrar(
+      home: Bilocator(
         builder: () => MyModel(),
         location: inherited ? Location.tree : Location.registry,
         child: MyObserverWidget(inherited: inherited, listen: listen),
@@ -71,7 +71,7 @@ class _MyObserverWidgetState extends State<MyObserverWidget> with Observer {
   }
 
   MyModel getModel(BuildContext context) {
-    return widget.inherited ? context.get<MyModel>() : Registrar.get<MyModel>();
+    return widget.inherited ? context.get<MyModel>() : Bilocator.get<MyModel>();
  }
 
   MyModel listenToModel(BuildContext context) {
@@ -98,15 +98,15 @@ void main() {
 
   tearDown(() {
     /// Ensure no residuals
-    expect(Registrar.isRegistered<MyModel>(), false);
+    expect(Bilocator.isRegistered<MyModel>(), false);
     expect(numberOfModelsThatNeedDispose, 0);
   });
 
   group('MyTestWidget', () {
-    testWidgets('not listening to registered Registrar does not rebuild widget', (WidgetTester tester) async {
+    testWidgets('not listening to registered Bilocator does not rebuild widget', (WidgetTester tester) async {
       await tester.pumpWidget(testApp(inherited: false, listen: false));
 
-      expect(Registrar.isRegistered<MyModel>(), true);
+      expect(Bilocator.isRegistered<MyModel>(), true);
       expect(find.text('$_number'), findsOneWidget);
 
       await tester.tap(find.text(_incrementButtonText));
@@ -115,10 +115,10 @@ void main() {
       expect(find.text('$_number'), findsOneWidget);
     });
 
-    testWidgets('listening to registered Registrar rebuilds widget', (WidgetTester tester) async {
+    testWidgets('listening to registered Bilocator rebuilds widget', (WidgetTester tester) async {
       await tester.pumpWidget(testApp(inherited: false, listen: true));
 
-      expect(Registrar.isRegistered<MyModel>(), true);
+      expect(Bilocator.isRegistered<MyModel>(), true);
       expect(find.text('$_number'), findsOneWidget);
 
       await tester.tap(find.text(_incrementButtonText));
@@ -127,10 +127,10 @@ void main() {
       expect(find.text('${_number + 1}'), findsOneWidget);
     });
 
-    testWidgets('not listening to inherited Registrar does not rebuild widget', (WidgetTester tester) async {
+    testWidgets('not listening to inherited Bilocator does not rebuild widget', (WidgetTester tester) async {
       await tester.pumpWidget(testApp(inherited: true, listen: false));
 
-      expect(Registrar.isRegistered<MyModel>(), false);
+      expect(Bilocator.isRegistered<MyModel>(), false);
       expect(find.text('$_number'), findsOneWidget);
 
       await tester.tap(find.text(_incrementButtonText));
@@ -139,7 +139,7 @@ void main() {
       expect(find.text('$_number'), findsOneWidget);
     });
 
-    testWidgets('listening to inherited Registrar rebuilds widget', (WidgetTester tester) async {
+    testWidgets('listening to inherited Bilocator rebuilds widget', (WidgetTester tester) async {
       await tester.pumpWidget(testApp(inherited: true, listen: true));
 
       expect(find.text('$_number'), findsOneWidget);
@@ -153,13 +153,13 @@ void main() {
     testWidgets('register and unregister inherited model', (WidgetTester tester) async {
       await tester.pumpWidget(testApp(inherited: true, listen: true));
 
-      expect(Registrar.isRegistered<MyModel>(), false);
+      expect(Bilocator.isRegistered<MyModel>(), false);
       expect(find.text('$_number'), findsOneWidget);
 
       await tester.tap(find.text(_registerButtonText));
       await tester.pump();
 
-      expect(Registrar.isRegistered<MyModel>(), true);
+      expect(Bilocator.isRegistered<MyModel>(), true);
 
       await tester.tap(find.text(_incrementButtonText));
       await tester.pump();

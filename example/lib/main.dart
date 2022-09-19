@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:registrar/registrar.dart';
+import 'package:bilocator/bilocator.dart';
 
 void main() => runApp(myApp());
 
 Widget myApp() => MaterialApp(
-        home: MultiRegistrar(delegates: [
-      RegistrarDelegate<RandomService>(builder: () => RandomService()),
-      RegistrarDelegate<ColorNotifier>(builder: () => ColorNotifier()),
+        home: Bilocators(delegates: [
+      BilocatorDelegate<RandomService>(builder: () => RandomService()),
+      BilocatorDelegate<ColorNotifier>(builder: () => ColorNotifier()),
     ], child: const Page()));
 
 class Page extends StatefulWidget {
@@ -25,12 +25,12 @@ class _PageState extends State<Page> with Observer {
   @override
   void initState() {
     super.initState();
-    Registrar.get<ColorNotifier>().addListener(() => setState(() {}));
+    Bilocator.get<ColorNotifier>().addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    Registrar.get<ColorNotifier>().removeListener(() => setState(() {}));
+    Bilocator.get<ColorNotifier>().removeListener(() => setState(() {}));
     super.dispose();
   }
 
@@ -38,7 +38,7 @@ class _PageState extends State<Page> with Observer {
 
   @override
   Widget build(BuildContext context) {
-    return Registrar<FortyTwoService>(
+    return Bilocator<FortyTwoService>(
         location: Location.tree,
         builder: () => FortyTwoService(),
         child: Scaffold(
@@ -48,7 +48,7 @@ class _PageState extends State<Page> with Observer {
                   style: TextStyle(
                       fontSize: 64, color: listenTo<ColorNotifier>(listener: () => setState(() {})).color.value)),
               OutlinedButton(
-                  onPressed: () => setState(() => _counter = Registrar.get<RandomService>().number),
+                  onPressed: () => setState(() => _counter = Bilocator.get<RandomService>().number),
                   child: const Text('Set Random')),
               Builder(builder: (context) => OutlinedButton(
                   onPressed: () => setState(() => _counter = context.get<FortyTwoService>().number),

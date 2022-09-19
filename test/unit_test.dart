@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:registrar/registrar.dart';
+import 'package:bilocator/bilocator.dart';
 
 class MyModel {
   final answer = 42;
@@ -19,62 +19,62 @@ class MyChangeNotifier extends ChangeNotifier {
 void main() {
   group('Object', () {
     test('unnamed model instance', () {
-      expect(Registrar.isRegistered<MyModel>(), false);
-      Registrar.register<MyModel>(instance: MyModel());
-      expect(Registrar.isRegistered<MyModel>(), true);
-      expect(Registrar.get<MyModel>().answer, 42);
-      Registrar.unregister<MyModel>();
-      expect(Registrar.isRegistered<MyModel>(), false);
-      expect(() => Registrar.get<MyModel>(), throwsA(isA<Exception>()));
-      expect(() => Registrar.unregister<MyModel>(), throwsA(isA<Exception>()));
+      expect(Bilocator.isRegistered<MyModel>(), false);
+      Bilocator.register<MyModel>(instance: MyModel());
+      expect(Bilocator.isRegistered<MyModel>(), true);
+      expect(Bilocator.get<MyModel>().answer, 42);
+      Bilocator.unregister<MyModel>();
+      expect(Bilocator.isRegistered<MyModel>(), false);
+      expect(() => Bilocator.get<MyModel>(), throwsA(isA<Exception>()));
+      expect(() => Bilocator.unregister<MyModel>(), throwsA(isA<Exception>()));
     });
 
     test('named model instance', () {
       String name = 'Some name';
-      expect(Registrar.isRegistered<MyModel>(), false);
-      Registrar.register<MyModel>(instance: MyModel(), name: name);
-      expect(Registrar.isRegistered<MyModel>(), false);
-      expect(Registrar.isRegistered<MyModel>(name: name), true);
-      expect(Registrar.get<MyModel>(name: name).answer, 42);
-      Registrar.unregister<MyModel>(name: name);
-      expect(Registrar.isRegistered<MyModel>(), false);
-      expect(Registrar.isRegistered<MyModel>(name: name), false);
-      expect(() => Registrar.get<MyModel>(name: name), throwsA(isA<Exception>()));
-      expect(() => Registrar.unregister<MyModel>(name: name), throwsA(isA<Exception>()));
+      expect(Bilocator.isRegistered<MyModel>(), false);
+      Bilocator.register<MyModel>(instance: MyModel(), name: name);
+      expect(Bilocator.isRegistered<MyModel>(), false);
+      expect(Bilocator.isRegistered<MyModel>(name: name), true);
+      expect(Bilocator.get<MyModel>(name: name).answer, 42);
+      Bilocator.unregister<MyModel>(name: name);
+      expect(Bilocator.isRegistered<MyModel>(), false);
+      expect(Bilocator.isRegistered<MyModel>(name: name), false);
+      expect(() => Bilocator.get<MyModel>(name: name), throwsA(isA<Exception>()));
+      expect(() => Bilocator.unregister<MyModel>(name: name), throwsA(isA<Exception>()));
     });
 
     test('unnamed model builder', () {
-      Registrar.register<MyModel>(builder: () => MyModel());
-      expect(Registrar.isRegistered<MyModel>(), true);
-      Registrar.unregister<MyModel>();
-      expect(Registrar.isRegistered<MyModel>(), false);
+      Bilocator.register<MyModel>(builder: () => MyModel());
+      expect(Bilocator.isRegistered<MyModel>(), true);
+      Bilocator.unregister<MyModel>();
+      expect(Bilocator.isRegistered<MyModel>(), false);
     });
 
     test('named model builder', () {
       String name = 'Some name';
-      expect(Registrar.isRegistered<MyModel>(), false);
-      Registrar.register<MyModel>(builder: () => MyModel(), name: name);
-      expect(Registrar.isRegistered<MyModel>(), false);
-      expect(Registrar.isRegistered<MyModel>(name: name), true);
-      Registrar.unregister<MyModel>(name: name);
-      expect(Registrar.isRegistered<MyModel>(name: name), false);
+      expect(Bilocator.isRegistered<MyModel>(), false);
+      Bilocator.register<MyModel>(builder: () => MyModel(), name: name);
+      expect(Bilocator.isRegistered<MyModel>(), false);
+      expect(Bilocator.isRegistered<MyModel>(name: name), true);
+      Bilocator.unregister<MyModel>(name: name);
+      expect(Bilocator.isRegistered<MyModel>(name: name), false);
     });
   });
 
   group('ChangeNotifier', () {
     test('dispose called', () {
       bool disposeCalled = false;
-      Registrar.register<MyChangeNotifier>(instance: MyChangeNotifier(() => disposeCalled = true));
-      expect(Registrar.isRegistered<MyChangeNotifier>(), true);
-      Registrar.unregister<MyChangeNotifier>();
+      Bilocator.register<MyChangeNotifier>(instance: MyChangeNotifier(() => disposeCalled = true));
+      expect(Bilocator.isRegistered<MyChangeNotifier>(), true);
+      Bilocator.unregister<MyChangeNotifier>();
       expect(disposeCalled, true);
     });
 
     test('dispose not called', () {
       bool disposeCalled = false;
-      Registrar.register<MyChangeNotifier>(instance: MyChangeNotifier(() => disposeCalled = true));
-      expect(Registrar.isRegistered<MyChangeNotifier>(), true);
-      Registrar.unregister<MyChangeNotifier>(dispose: false);
+      Bilocator.register<MyChangeNotifier>(instance: MyChangeNotifier(() => disposeCalled = true));
+      expect(Bilocator.isRegistered<MyChangeNotifier>(), true);
+      Bilocator.unregister<MyChangeNotifier>(dispose: false);
       expect(disposeCalled, false);
     });
   });

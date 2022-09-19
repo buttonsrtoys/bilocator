@@ -5,6 +5,6 @@ There are three registered services:
 2. FortyTwoService holds a number that is equal to 42.
 3. RandomService generates a random number.
 
-The first service was added to the widget tree with `Registrar`. The remaining services are added with `MultiRegistrar`.
+The first service was added to the widget tree with `Bilocator`. The remaining services are added with `Bilocators`.
 
-![example](https://github.com/buttonsrtoys/registrar/blob/main/example/example.gif)
+![example](https://github.com/buttonsrtoys/bilocator/blob/main/example/example.gif)
