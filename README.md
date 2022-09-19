@@ -5,11 +5,11 @@
 A flexible hybrid locator that supports both single services (like GetIt) and inherited models (like Provider).
 
 Bilocator goals:
-- Locate single services from anywhere.
+- Locate single services from global registry.
 - Locate inherited models in the widget tree.
 - Bind the lifecycle of both single services and inherited models to widgets.
 - Support lazy loading.
-- Support registering inherited models as single services.
+- Support models being simultaneously locatable in the registry and on the widget tree.
 - Work alone or with other state management packages (RxDart, Provider, GetIt, ...).
 - Be scalable and performant, so suitable for both indy and production apps.
 
@@ -147,6 +147,10 @@ After registering, the model will be available from anywhere. When no longer nee
 ```dart
 unregister<MyModel>(context);
 ```
+
+# Did You Know...
+
+Bilocators are religious zealots and mystics that claim to have the power of locating in two places at once? Thus the name.
 
 # Example
 (The source code for this example is under the Pub.dev "Example" tab and in the GitHub `example/lib/main.dart` file.)
