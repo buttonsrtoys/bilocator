@@ -5,7 +5,7 @@
 A Flutter hybrid locator that supports both single services (like GetIt) and inherited models (like Provider, InheritedWidget).
 
 Bilocator goals:
-- Locate single services from global registry.
+- Locate single services in a global registry.
 - Locate inherited models in the widget tree.
 - Bind the lifecycle of both single services and inherited models to widgets.
 - Support lazy loading.
@@ -32,7 +32,7 @@ Bilocator<MyService>(
 
 Inherited models are located on the widget tree (similar to Provider, InheritedWidget). Unlike single services, you can add as many inherited models of the same type as you need.
 
-Adding inherited models to the widget tree uses the same Bilocator widget, but with the `inherited` parameter:
+By default, models are stored in the registry (`location: Location.registry`). To add models to the widget tree, set `location` to `Location.tree`:
 
 ```dart
 Bilocator<MyModel>(
