@@ -8,14 +8,6 @@ enum Location {
 
 /// A widget that locates a single service in a registry or an inherited model in the widget tree.
 ///
-/// Rich, update this description
-/// The lifecycle of the [T] object is bound to this widget. The object is registered when this widget is added to the
-/// widget tree and unregistered when removed.
-///
-/// Bilocator also manages ChangeNotifiers. If [T] is of type ChangeNotifier then a listener is added to the build
-/// ChangeNotifier that rebuilds this Bilocator widget when [ChangeNotifier.notifyListeners] is called. Also, its
-/// [ChangeNotifier.dispose] is called when it is unregistered.
-///
 /// [builder] builds the [T].
 /// [name] is a unique name key and only needed when more than one instance is registered of the same type.
 /// If object is ChangeNotifier, [dispose] determines if dispose function is called. If object is not a
@@ -27,6 +19,13 @@ enum Location {
 /// only have one instance of a given type [T] and [name]. Inherited models can have unlimited instances of type [T]
 /// but are only accessible by descendants. See [context.get], [Observer.get], and [Observer.listenTo] for accessing
 /// single services and inherited models.
+///
+/// Bilocator also manages ChangeNotifiers. If [T] is of type ChangeNotifier then a listener is added to the build
+/// ChangeNotifier that rebuilds this Bilocator widget when [ChangeNotifier.notifyListeners] is called. Also, its
+/// [ChangeNotifier.dispose] is called when it is unregistered.
+///
+/// The lifecycle of the [T] object is bound to this widget, regardless of whether [location] is [Location.tree]
+/// or [Location.registry].
 class Bilocator<T extends Object> extends StatefulWidget {
   Bilocator({
     required this.builder,
@@ -160,14 +159,10 @@ class _BilocatorState<T extends Object> extends State<Bilocator<T>> with Bilocat
   void initState() {
     super.initState();
     initStateImpl(
-        location: widget.location,
-        builder: widget.builder,
-        name: widget.name,
-        onInitialization: (object) {
-          if (object is ChangeNotifier) {
-            object.addListener(() => setState(() {}));
-          }
-        });
+      location: widget.location,
+      builder: widget.builder,
+      name: widget.name,
+    );
   }
 
   @override

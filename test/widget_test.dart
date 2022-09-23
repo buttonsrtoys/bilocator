@@ -13,14 +13,14 @@ const _unregisterButtonText = 'Unregister';
 /// [registerViewModel] true to register [MyTestWidgetViewModel]
 /// [viewModelName] is option name of registered [MyTestWidgetViewModel]
 Widget testApp({
-  required bool inherited,
+  required Location location,
   required bool listen,
 }) =>
     MaterialApp(
       home: Bilocator(
+        location: location,
         builder: () => MyModel(),
-        location: inherited ? Location.tree : Location.registry,
-        child: MyObserverWidget(inherited: inherited, listen: listen),
+        child: MyObserverWidget(location: location, listen: listen),
       ),
     );
 
@@ -52,11 +52,11 @@ class MyModel extends ChangeNotifier {
 class MyObserverWidget extends StatefulWidget {
   const MyObserverWidget({
     super.key,
-    required this.inherited,
+    required this.location,
     required this.listen,
   });
 
-  final bool inherited;
+  final Location location;
   final bool listen;
 
   @override
@@ -71,11 +71,12 @@ class _MyObserverWidgetState extends State<MyObserverWidget> with Observer {
   }
 
   MyModel getModel(BuildContext context) {
-    return widget.inherited ? context.get<MyModel>() : Bilocator.get<MyModel>();
- }
+    return widget.location == Location.tree ? context.get<MyModel>() : Bilocator.get<MyModel>();
+  }
 
   MyModel listenToModel(BuildContext context) {
-    return widget.inherited ? context.of<MyModel>() : listenTo<MyModel>(listener: () => setState(() {}));
+    return listenTo<MyModel>(
+        context: widget.location == Location.tree ? context : null, listener: () => setState(() {}));
   }
 
   @override
@@ -93,8 +94,7 @@ class _MyObserverWidgetState extends State<MyObserverWidget> with Observer {
 }
 
 void main() {
-  setUp(() {
-  });
+  setUp(() {});
 
   tearDown(() {
     /// Ensure no residuals
@@ -104,7 +104,7 @@ void main() {
 
   group('MyTestWidget', () {
     testWidgets('not listening to registered Bilocator does not rebuild widget', (WidgetTester tester) async {
-      await tester.pumpWidget(testApp(inherited: false, listen: false));
+      await tester.pumpWidget(testApp(location: Location.registry, listen: false));
 
       expect(Bilocator.isRegistered<MyModel>(), true);
       expect(find.text('$_number'), findsOneWidget);
@@ -116,7 +116,7 @@ void main() {
     });
 
     testWidgets('listening to registered Bilocator rebuilds widget', (WidgetTester tester) async {
-      await tester.pumpWidget(testApp(inherited: false, listen: true));
+      await tester.pumpWidget(testApp(location: Location.registry, listen: true));
 
       expect(Bilocator.isRegistered<MyModel>(), true);
       expect(find.text('$_number'), findsOneWidget);
@@ -128,7 +128,7 @@ void main() {
     });
 
     testWidgets('not listening to inherited Bilocator does not rebuild widget', (WidgetTester tester) async {
-      await tester.pumpWidget(testApp(inherited: true, listen: false));
+      await tester.pumpWidget(testApp(location: Location.tree, listen: false));
 
       expect(Bilocator.isRegistered<MyModel>(), false);
       expect(find.text('$_number'), findsOneWidget);
@@ -140,7 +140,7 @@ void main() {
     });
 
     testWidgets('listening to inherited Bilocator rebuilds widget', (WidgetTester tester) async {
-      await tester.pumpWidget(testApp(inherited: true, listen: true));
+      await tester.pumpWidget(testApp(location: Location.tree, listen: true));
 
       expect(find.text('$_number'), findsOneWidget);
 
@@ -151,7 +151,7 @@ void main() {
     });
 
     testWidgets('register and unregister inherited model', (WidgetTester tester) async {
-      await tester.pumpWidget(testApp(inherited: true, listen: true));
+      await tester.pumpWidget(testApp(location: Location.tree, listen: true));
 
       expect(Bilocator.isRegistered<MyModel>(), false);
       expect(find.text('$_number'), findsOneWidget);
