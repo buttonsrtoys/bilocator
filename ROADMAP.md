@@ -1,6 +1,8 @@
-## Add inherited models to BilocatorDelegate
+## Add tests for context.of method
 
-Currently only supports single services.
+## Add Location.tree support to BilocatorDelegate
+
+Currently only supports Location.registry (which is the most common use for using Bilocators, but still...)
 
 ## Better exception messages when locate fails
 
@@ -19,11 +21,3 @@ and with different type but same name.
 Maybe confused with other uses of "instance", like GetIt.instance. Maybe "object" or "data"?
 
 Maybe OK in the context of the "builder" parameter.
-
-## Observer.register could be made lazy
-
-Observer.register instantiates the inherited model when registering it. This could be refactored to 
-use _LazyInitializer and retain the build function. (This is a rarely used function and a bit of an edge case, so not a high priority.)
-
-While working on this, add error check when Observer.unregister is called, check that the
-_LazyInitializer is the same. I.e., that it wasn't another Observer that registered the model.

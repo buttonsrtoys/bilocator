@@ -1,3 +1,6 @@
+## 0.5.1
+- Removed unnecessary setState listener. Improved tests and readme.
+
 ## 0.5.0
 - Renamed package from Registrar to Bilocator.
 
