@@ -15,12 +15,13 @@ const _unregisterButtonText = 'Unregister';
 Widget testApp({
   required Location location,
   required bool listen,
+  bool useOf = false,
 }) =>
     MaterialApp(
       home: Bilocator(
         location: location,
         builder: () => MyModel(),
-        child: MyObserverWidget(location: location, listen: listen),
+        child: MyObserverWidget(location: location, listen: listen, useOf: useOf),
       ),
     );
 
@@ -54,10 +55,12 @@ class MyObserverWidget extends StatefulWidget {
     super.key,
     required this.location,
     required this.listen,
+    required this.useOf,
   });
 
   final Location location;
   final bool listen;
+  final bool useOf;
 
   @override
   State<MyObserverWidget> createState() => _MyObserverWidgetState();
@@ -75,8 +78,12 @@ class _MyObserverWidgetState extends State<MyObserverWidget> with Observer {
   }
 
   MyModel listenToModel(BuildContext context) {
-    return listenTo<MyModel>(
-        context: widget.location == Location.tree ? context : null, listener: () => setState(() {}));
+    if (widget.useOf) {
+      return context.of<MyModel>();
+    } else {
+      return listenTo<MyModel>(
+          context: widget.location == Location.tree ? context : null, listener: () => setState(() {}));
+    }
   }
 
   @override
@@ -160,6 +167,17 @@ void main() {
       await tester.pump();
 
       expect(Bilocator.isRegistered<MyModel>(), true);
+
+      await tester.tap(find.text(_incrementButtonText));
+      await tester.pump();
+
+      expect(find.text('${_number + 1}'), findsOneWidget);
+    });
+
+    testWidgets('listen to model with ".of"', (WidgetTester tester) async {
+      await tester.pumpWidget(testApp(location: Location.tree, listen: true, useOf: true));
+
+      expect(find.text('$_number'), findsOneWidget);
 
       await tester.tap(find.text(_incrementButtonText));
       await tester.pump();

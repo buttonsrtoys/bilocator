@@ -41,23 +41,31 @@ class _PageState extends State<Page> with Observer {
     return Bilocator<FortyTwoService>(
         location: Location.tree,
         builder: () => FortyTwoService(),
-        child: Scaffold(
-            body: Center(
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text('$_counter',
-                  style: TextStyle(
-                      fontSize: 64, color: listenTo<ColorNotifier>(listener: () => setState(() {})).color.value)),
-              OutlinedButton(
-                  onPressed: () => setState(() => _counter = Bilocator.get<RandomService>().number),
-                  child: const Text('Set Random')),
-              Builder(builder: (context) => OutlinedButton(
-                  onPressed: () => setState(() => _counter = context.get<FortyTwoService>().number),
-                  child: const Text('Set 42'))),
-            ])),
-            floatingActionButton: FloatingActionButton(
-              onPressed: _incrementCounter,
-              child: const Icon(Icons.add),
-            )));
+        child: Bilocator<ClearService>(
+            location: Location.tree,
+            builder: () => ClearService(),
+            child: Scaffold(
+                body: Center(
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text('$_counter',
+                      style: TextStyle(
+                          fontSize: 64, color: listenTo<ColorNotifier>(listener: () => setState(() {})).color.value)),
+                  OutlinedButton(
+                      onPressed: () => setState(() => _counter = Bilocator.get<RandomService>().number),
+                      child: const Text('Set Random')),
+                  Builder(
+                      builder: (context) => OutlinedButton(
+                          onPressed: () => setState(() => _counter = context.get<FortyTwoService>().number),
+                          child: const Text('Set 42'))),
+                  Builder(
+                      builder: (context) => OutlinedButton(
+                          onPressed: () => setState(() => _counter = context.get<ClearService>().number),
+                          child: const Text('Clear'))),
+                ])),
+                floatingActionButton: FloatingActionButton(
+                  onPressed: _incrementCounter,
+                  child: const Icon(Icons.add),
+                ))));
   }
 }
 
@@ -82,6 +90,10 @@ class ColorNotifier extends ChangeNotifier {
 
 class FortyTwoService {
   int get number => 42;
+}
+
+class ClearService {
+  int get number => 0;
 }
 
 class RandomService {
