@@ -249,10 +249,11 @@ extension BilocatorBuildContextExtension on BuildContext {
     return inheritedWidget.instance;
   }
 
-  /// Create a dependency with a [Bilocator] widget with [location] param set and a model of type [T].
+  /// Create a dependency between the calling widget and a [Bilocator] widget with generic type [T].
   ///
   /// Same idea as the "of" feature of Provider.of, Theme.of, etc. For no dependency, use [get].
   /// Performs a lazy initialization if necessary. An exception is thrown if [T] is not a [ChangeNotifier].
+  /// or the not match found.
   T of<T extends ChangeNotifier>() {
     final _BilocatorInheritedWidget<T>? inheritedWidget =
         dependOnInheritedWidgetOfExactType<_BilocatorInheritedWidget<T>>();

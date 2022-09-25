@@ -1,3 +1,6 @@
+## 0.5.2
+- Improved readme.
+
 ## 0.5.1
 - Removed unnecessary setState listener. Improved tests and readme.
 

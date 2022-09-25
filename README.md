@@ -2,7 +2,7 @@
 
 ![bilocator logo](https://github.com/buttonsrtoys/bilocator/blob/main/assets/BilocatorLogo.png)
 
-A Flutter hybrid locator that supports both single services (like GetIt) and inherited models (like Provider, InheritedWidget).
+A Flutter hybrid locator that manages models in a global registry (like GetIt) and in the widget tree (like Provider, InheritedWidget).
 
 Bilocator goals:
 - Locate single services in a global registry.
@@ -68,10 +68,10 @@ And then get the service by type and name:
 final myService = Bilocator.get<MyService>(name: 'some unique name');
 ```
 
-When you want to manage multiple services with a single widget, use MultiBilocator:
+When you want to manage multiple services with a single widget, use Bilocators:
 
 ```dart
-MultiBilocator(
+Bilocators(
   delegates: [
     BilocatorDelegate<MyService>(builder: () => MyService()),
     BilocatorDelegate<MyOtherService>(builder: () => MyOtherService()),
@@ -80,13 +80,13 @@ MultiBilocator(
 );
 ```
 
-For rare use cases where you need to directly manage registering and unregistering services (instead of letting Bilocator and MultiBilocator manage your services), you can use the static `register` and `unregister` functions:
+For rare use cases where you need to directly manage registering and unregistering services (instead of letting Bilocator and Bilocators manage your services), you can use the static `register` and `unregister` functions:
 
 ````dart
 Bilocator.register<MyService>(builder: () => MyService())
 ````
 
-## How to Located Inherited Models
+## Locating Inherited Models
 
 Bilocator implements the observer pattern as a mixin that can my added to your models and widgets.
 
@@ -102,7 +102,7 @@ Models and widgets that use Observer can `listenTo` inherited models and single 
 final text = listenTo<MyWidgetViewModel>(listener: myListener).text;
 ```
 
-To listen to inherited models on the widget tree, add the `context` parameter to search the widget tree:
+To listen to inherited models on the widget tree, add the `context` parameter:
 
 ```dart
 final text = listenTo<MyWidgetViewModel>(context: context, listener: myListener).text;
@@ -148,9 +148,9 @@ After registering, the model will be available from anywhere. When no longer nee
 unregister<MyModel>(context);
 ```
 
-# Did You Know...
+# Some Trivia
 
-Bilocators are religious zealots and mystics that claim to have the power of locating in two places at once? Thus the name.
+In the non-technical world, religious zealots and mystics that claim to have the power of locating in two places at once are referred to as bilocators.
 
 # Example
 (The source code for this example is under the Pub.dev "Example" tab and in the GitHub `example/lib/main.dart` file.)
@@ -160,11 +160,11 @@ There are three registered services:
 2. FortyTwoService holds a number that is equal to 42.
 3. RandomService generates a random number.
 
-The first service was added to the widget tree with `Bilocator`. The remaining services were added with `MultiBilocator`.
+The first service was added to the widget tree with `Bilocator`. The remaining services were added with `Bilocators`.
 
 ![example](https://github.com/buttonsrtoys/bilocator/blob/main/example/example.gif)
 
-## That's it! 
+## That's It! 
 
 If you have questions or suggestions on anything Bilocator, please do not hesitate to contact me.
 

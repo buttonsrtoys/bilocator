@@ -49,10 +49,11 @@ class _PageState extends State<Page> with Observer {
                       fontSize: 64, color: listenTo<ColorNotifier>(listener: () => setState(() {})).color.value)),
               OutlinedButton(
                   onPressed: () => setState(() => _counter = Bilocator.get<RandomService>().number),
-                  child: const Text('Set Random')),
-              Builder(builder: (context) => OutlinedButton(
-                  onPressed: () => setState(() => _counter = context.get<FortyTwoService>().number),
-                  child: const Text('Set 42'))),
+                  child: const Text('Set Random (with context.get)')),
+              Builder(
+                  builder: (context) => OutlinedButton(
+                      onPressed: () => _counter = context.of<FortyTwoService>().number,
+                      child: const Text('Set 42 (with context.of)'))),
             ])),
             floatingActionButton: FloatingActionButton(
               onPressed: _incrementCounter,
@@ -80,8 +81,11 @@ class ColorNotifier extends ChangeNotifier {
   }
 }
 
-class FortyTwoService {
-  int get number => 42;
+class FortyTwoService extends ChangeNotifier {
+  int get number {
+    notifyListeners();
+    return 42;
+  }
 }
 
 class RandomService {
