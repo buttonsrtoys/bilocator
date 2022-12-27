@@ -29,12 +29,12 @@ class _PageState extends State<Page> with Observer {
   @override
   void initState() {
     super.initState();
-    Bilocator.get<ColorNotifier>().addListener(() => setState(() {}));
+    get<ColorNotifier>().addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    Bilocator.get<ColorNotifier>().removeListener(() => setState(() {}));
+    get<ColorNotifier>().removeListener(() => setState(() {}));
     super.dispose();
   }
 
@@ -47,14 +47,12 @@ class _PageState extends State<Page> with Observer {
               style:
                   TextStyle(fontSize: 64, color: listenTo<ColorNotifier>(listener: () => setState(() {})).color.value)),
           OutlinedButton(
-              onPressed: () => context.of<Counter>().count = Bilocator.get<RandomService>().number,
-              child: const Text('Set Random (with context.get)')),
-          Builder(
-              builder: (context) => OutlinedButton(
-                  onPressed: () {
-                    context.of<Counter>().count = 42;
-                  },
-                  child: const Text('Set 42 (with context.of)'))),
+              onPressed: () => context.of<Counter>().count = get<RandomService>().number,
+              child: const Text('Set Random')),
+          OutlinedButton(
+            onPressed: () => context.of<Counter>().count = 0,
+            child: const Text('Clear'),
+          ),
         ])),
         floatingActionButton: FloatingActionButton(
           onPressed: () => context.of<Counter>().count++,
