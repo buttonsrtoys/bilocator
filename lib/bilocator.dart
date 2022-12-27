@@ -155,18 +155,29 @@ class Bilocator<T extends Object> extends StatefulWidget {
 }
 
 class _BilocatorState<T extends Object> extends State<Bilocator<T>> with BilocatorStateImpl<T> {
+  ChangeNotifier? changeNotifier;
+  void update() => setState(() {});
+
   @override
   void initState() {
     super.initState();
     initStateImpl(
-      location: widget.location,
-      builder: widget.builder,
-      name: widget.name,
-    );
+        location: widget.location,
+        builder: widget.builder,
+        name: widget.name,
+        onInitialization: (object) {
+          if (object is ChangeNotifier) {
+            changeNotifier = object;
+            object.addListener(update);
+          }
+        });
   }
 
   @override
   void dispose() {
+    if (changeNotifier != null) {
+      changeNotifier!.removeListener(update);
+    }
     disposeImpl(location: widget.location, name: widget.name, dispose: widget.dispose);
     super.dispose();
   }
@@ -543,7 +554,8 @@ class _Subscription extends Equatable {
   void unsubscribe() => changeNotifier.removeListener(listener);
 
   @override
-  List<Object?> get props => [changeNotifier, listener];
+  // Rich,
+  List<Object?> get props => [changeNotifier, 42 /*listener.hashCode*/];
 }
 
 final _registry = <Type, Map<String?, _RegistryEntry>>{};
