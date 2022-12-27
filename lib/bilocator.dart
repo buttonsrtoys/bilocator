@@ -269,6 +269,7 @@ extension BilocatorBuildContextExtension on BuildContext {
     final _BilocatorInheritedWidget<T>? inheritedWidget =
         dependOnInheritedWidgetOfExactType<_BilocatorInheritedWidget<T>>();
     if (inheritedWidget == null) {
+      // Rich, add text for when located on tree and forgot location:
       throw Exception('BuildContext.of<T>() did not find inherited widget Bilocator<$T>()');
     }
     return inheritedWidget.instance;
