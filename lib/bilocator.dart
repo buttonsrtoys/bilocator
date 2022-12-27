@@ -182,7 +182,7 @@ class _BilocatorState<T extends Object> extends State<Bilocator<T>> with Bilocat
 /// This was implemented as a mixin so it could be consumed by other packages. E.g.,
 /// [mvvm_plus](https://pub.dev/packages/mvvm_plus) consumes it.
 mixin BilocatorStateImpl<T extends Object> {
-  late _LazyInitializer<T> _lazyInitializer;
+  late final _LazyInitializer<T> _lazyInitializer;
   final isRegisteredInheritedModel = _IsRegisteredInheritedModel();
 
   void initStateImpl({
@@ -358,14 +358,6 @@ class Bilocators extends StatefulWidget {
 
 class _BilocatorsState extends State<Bilocators> {
   @override
-  void initState() {
-    super.initState();
-    for (final delegate in widget.delegates) {
-      delegate._register();
-    }
-  }
-
-  @override
   void dispose() {
     for (final delegate in widget.delegates) {
       delegate._unregister();
@@ -394,7 +386,9 @@ class BilocatorDelegate<T extends Object> {
     this.instance,
     this.name,
     this.dispose = true,
-  }) : assert(T != Object, _missingGenericError('constructor BilocatorDelegate', 'Object'));
+  }) : assert(T != Object, _missingGenericError('constructor BilocatorDelegate', 'Object')) {
+    _register();
+  }
 
   final T Function()? builder;
   final String? name;

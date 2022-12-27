@@ -67,7 +67,7 @@ class ColorNotifier extends ChangeNotifier {
   late final color = ValueNotifier<Color>(Colors.black)..addListener(notifyListeners);
 
   ColorNotifier() {
-    _timer = Timer.periodic(const Duration(seconds: 2), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
       color.value = <Color>[Colors.orange, Colors.purple, Colors.cyan][++_counter % 3];
     });
   }
