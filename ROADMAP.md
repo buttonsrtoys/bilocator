@@ -1,10 +1,10 @@
-## Add tests for context.of method
+## Add more tests
 
 ## Add Location.tree support to BilocatorDelegate
 
 Currently only supports Location.registry (which is the most common use for using Bilocators, but still...)
 
-## Better exception messages when locate fails
+## Add check for registry when widget tree lookup fails.
 
 When a locate for an inherited model or registered service fails, it would be good to check the
 other possible locations and report the results to the developer. E.g.,
@@ -25,4 +25,6 @@ Maybe confused with other uses of "instance", like GetIt.instance. Maybe "object
 
 Maybe OK in the context of the "builder" parameter.
 
-## Review Bilocotor class for registering in constructor rather than initState
+## Review Bilocator class for registering in constructor rather than initState
+
+## Consider renaming Bilocators to MultiBilocator to be consistent with Provider and Flutter

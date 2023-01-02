@@ -52,7 +52,15 @@ class Bilocator<T extends Object> extends StatefulWidget {
   static void register<T extends Object>({T? instance, T Function()? builder, String? name}) {
     if (Bilocator.isRegistered<T>(name: name)) {
       throw Exception(
-        'Error: Tried to register an instance of type $T with name $name but it is already registered.',
+        'Bilocator tried to register an instance of type $T with name $name but it is already registered. Possible '
+        'causes:\n'
+        ' - Data was stored in the widget tree using the parameter `location: Location.tree` but the registry was '
+        'searched instead. This can be fixed by searching the widget tree with a BuildContext or my storing the data '
+        'in the registry using `Location.registry`\n'
+        ' - If this exception occurred during a hot reload and a hot restart fixes problem, the issue is likely that '
+        'the same bilocator is trying to re-register during a hot reload. This can be fixed by assigning the bilocator '
+        'a unique key (Bilocator checks whether the data associated with the key is already registered). See the '
+        'documentation for the Bilocators class for more information.\n\n',
       );
     }
     _register(type: T, lazyInitializer: _LazyInitializer(builder: builder, instance: instance), name: name);
@@ -69,7 +77,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
     final runtimeType = instance.runtimeType;
     if (Bilocator.isRegisteredByRuntimeType(runtimeType: runtimeType, name: name)) {
       throw Exception(
-        'Error: Tried to register an instance of type $runtimeType with name $name but it is already registered.',
+        'Bilocator tried to register an instance of type $runtimeType with name $name but it is already registered.\n',
       );
     }
     _register(type: runtimeType, lazyInitializer: _LazyInitializer(builder: null, instance: instance), name: name);
@@ -93,7 +101,10 @@ class Bilocator<T extends Object> extends StatefulWidget {
   static void unregister<T extends Object>({String? name, bool dispose = true}) {
     if (!Bilocator.isRegistered<T>(name: name)) {
       throw Exception(
-        'Error: Tried to unregister an instance of type $T with name $name but it is not registered.',
+        'Bilocator tried to unregister an instance of type $T with name $name but it is not registered. Possible '
+        'causes:\n'
+        ' - Data was stored in the widget tree using `location: Location.tree` so not found in the registry. See the '
+        'documentation for Bilocator for more information.\n\n',
       );
     }
     final registryEntry = _unregister(type: T, name: name);
@@ -114,7 +125,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
   static void unregisterByRuntimeType({required Type runtimeType, String? name, bool dispose = true}) {
     if (!Bilocator.isRegisteredByRuntimeType(runtimeType: runtimeType, name: name)) {
       throw Exception(
-        'Error: Tried to unregister an instance of type $runtimeType with name $name but it is not registered.',
+        'Bilocator tried to unregister an instance of type $runtimeType with name $name but it is not registered.\n',
       );
     }
     final registryEntry = _unregister(type: runtimeType, name: name);
@@ -147,7 +158,9 @@ class Bilocator<T extends Object> extends StatefulWidget {
   static T get<T extends Object>({String? name}) {
     if (!Bilocator.isRegistered<T>(name: name)) {
       throw Exception(
-        'Bilocator tried to get an instance of type $T with name $name but it is not registered.',
+        'Bilocator tried to get an instance of type $T with name $name but it is not registered. Possible causes:\n'
+        ' - Data was stored in the widget tree using `location: Location.tree` so not found in the registry. See the '
+        'documentation for Bilocator for more information.\n\n',
       );
     }
     return _registry[T]![name]!.lazyInitializer.instance as T;
@@ -240,7 +253,9 @@ extension BilocatorBuildContextExtension on BuildContext {
   _BilocatorInheritedWidget<T> _getInheritedWidget<T extends Object>() {
     final inheritedElement = getElementForInheritedWidgetOfExactType<_BilocatorInheritedWidget<T>>();
     if (inheritedElement == null) {
-      throw Exception('No inherited Bilocator widget found with type $T');
+      throw Exception('No inherited Bilocator widget found with type $T. Possible causes:\n'
+          ' - The data was stored in the registry using `location: Location.registry` but searched for in the widget tree. '
+          'To search the registry, do not use BuildContext.\n\n');
     }
     return inheritedElement.widget as _BilocatorInheritedWidget<T>;
   }
@@ -269,8 +284,9 @@ extension BilocatorBuildContextExtension on BuildContext {
     final _BilocatorInheritedWidget<T>? inheritedWidget =
         dependOnInheritedWidgetOfExactType<_BilocatorInheritedWidget<T>>();
     if (inheritedWidget == null) {
-      // Rich, add text for when located on tree and forgot location:
-      throw Exception('BuildContext.of<T>() did not find inherited widget Bilocator<$T>()');
+      throw Exception('BuildContext.of<T>() did not find inherited widget Bilocator<$T>(). Possible causes:\n'
+          ' - The data was stored in the registry instead of the widget tree. To search the registry, do not use '
+          'BuildContext.\n\n');
     }
     return inheritedWidget.instance;
   }
@@ -337,9 +353,37 @@ class _IsRegisteredInheritedModel {
   bool value = false;
 }
 
+class _UniqueKeysManager {
+  static final _keys = <Key>{};
+  void add(Key key) {
+    if (_keys.contains(key)) {
+      throw Exception('A Bilocators constructor was call with a key that was already registered. Possible causes:\n'
+          ' - Two Bilocators instances use the same key. Keys for Bilocators must be unique.\n'
+          ' - The same Bilocator tried to re-register during a hot reload. This is fixed by giving the Bilocators '
+          'instance a unique key. See the Bilocators documentation for more information.\n\n');
+    } else {
+      _keys.add(key);
+    }
+  }
+
+  bool contains(Key key) => _keys.contains(key);
+  bool remove(Key key) => _keys.remove(key);
+}
+
+final _uniqueKeysManager = _UniqueKeysManager();
+
 /// Register multiple Objects so they can be retrieved with [Bilocator.get]
 ///
 /// [Bilocators] only uses [Location.registry] and does not add widget to the widget try per [Location.tree].
+///
+/// Under certain conditions, [Bilocators] can attempt to re-register deligates on a hot reload which will throw an
+/// assert. Assigning a repeatable key prevents this, as Bilocator uses the key to check if it has already registered.
+/// E.g.,
+///
+///     Bilocators(
+///       key: ValueKey('services'),
+///       deligates: [],
+///     }
 ///
 /// The lifecycle of each Object is bound to this widget. Each object is registered when this widget is added to the
 /// widget tree and unregistered when removed. If an Object is of type ChangeNotifier then its
@@ -355,11 +399,20 @@ class _IsRegisteredInheritedModel {
 ///   );
 ///
 class Bilocators extends StatefulWidget {
-  const Bilocators({
+  Bilocators({
     required this.delegates,
     required this.child,
     super.key,
-  });
+  }) {
+    if (key == null || !_uniqueKeysManager.contains(key!)) {
+      if (key != null) {
+        _uniqueKeysManager.add(key!);
+      }
+      for (final delegate in delegates) {
+        delegate._register();
+      }
+    }
+  }
 
   final List<BilocatorDelegate> delegates;
   final Widget child;
@@ -371,6 +424,9 @@ class Bilocators extends StatefulWidget {
 class _BilocatorsState extends State<Bilocators> {
   @override
   void dispose() {
+    if (widget.key != null && _uniqueKeysManager.contains(widget.key!)) {
+      _uniqueKeysManager.remove(widget.key!);
+    }
     for (final delegate in widget.delegates) {
       delegate._unregister();
     }
@@ -398,9 +454,7 @@ class BilocatorDelegate<T extends Object> {
     this.instance,
     this.name,
     this.dispose = true,
-  }) : assert(T != Object, _missingGenericError('constructor BilocatorDelegate', 'Object')) {
-    _register();
-  }
+  }) : assert(T != Object, _missingGenericError('constructor BilocatorDelegate', 'Object'));
 
   final T Function()? builder;
   final String? name;
@@ -555,8 +609,7 @@ class _Subscription extends Equatable {
   void unsubscribe() => changeNotifier.removeListener(listener);
 
   @override
-  // Rich,
-  List<Object?> get props => [changeNotifier, 42 /*listener.hashCode*/];
+  List<Object?> get props => [changeNotifier];
 }
 
 final _registry = <Type, Map<String?, _RegistryEntry>>{};
