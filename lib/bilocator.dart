@@ -354,6 +354,7 @@ class _IsRegisteredInheritedModel {
   bool value = false;
 }
 
+/// Manages a unique list of keys and throws if the same key is added twice.
 class _UniqueKeysManager {
   static final _keys = <Key>{};
   void add(Key key) {
@@ -378,12 +379,12 @@ final _uniqueKeysManager = _UniqueKeysManager();
 /// [Bilocators] only uses [Location.registry] and does not add widget to the widget try per [Location.tree].
 ///
 /// Under certain conditions, [Bilocators] can attempt to re-register deligates on a hot reload which will throw an
-/// assert. Assigning a repeatable key prevents this, as Bilocator uses the key to check if it has already registered.
-/// E.g.,
+/// exception. Assigning a repeatable key prevents this, as Bilocator uses the key to check if it has already
+/// registered. E.g.,
 ///
 ///     Bilocators(
 ///       key: ValueKey('services'),
-///       deligates: [],
+///       delegates: [],
 ///     }
 ///
 /// The lifecycle of each Object is bound to this widget. Each object is registered when this widget is added to the
@@ -610,7 +611,7 @@ class _Subscription extends Equatable {
   void unsubscribe() => changeNotifier.removeListener(listener);
 
   @override
-  List<Object?> get props => [changeNotifier];
+  List<Object?> get props => [changeNotifier, listener];
 }
 
 final _registry = <Type, Map<String?, _RegistryEntry>>{};
