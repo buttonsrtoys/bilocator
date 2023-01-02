@@ -1,5 +1,5 @@
 name: bilocator
-description: A Flutter locator that manages models in a global registry (like GetIt) and in the widget tree (like Provider, InheritedWidget).
+description: A locator that manages models in a global registry (like GetIt) and in the widget tree (like Provider, InheritedWidget).
 version: 0.5.3
 repository: https://github.com/buttonsrtoys/bilocator
 issue_tracker: https://github.com/buttonsrtoys/bilocator/issues
