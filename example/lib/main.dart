@@ -7,10 +7,16 @@ import 'package:bilocator/bilocator.dart';
 void main() => runApp(myApp());
 
 Widget myApp() => MaterialApp(
-        home: Bilocators(delegates: [
-      BilocatorDelegate<RandomService>(builder: () => RandomService()),
-      BilocatorDelegate<ColorNotifier>(builder: () => ColorNotifier()),
-    ], child: const Page()));
+        home: Bilocators(
+            delegates: [
+          BilocatorDelegate<RandomService>(builder: () => RandomService()),
+          BilocatorDelegate<ColorNotifier>(builder: () => ColorNotifier()),
+        ],
+            child: Bilocator(
+              builder: () => Counter(),
+              location: Location.tree,
+              child: const Page(),
+            )));
 
 class Page extends StatefulWidget {
   const Page({super.key});
@@ -20,45 +26,47 @@ class Page extends StatefulWidget {
 }
 
 class _PageState extends State<Page> with Observer {
-  int _counter = 0;
-
   @override
   void initState() {
     super.initState();
-    Bilocator.get<ColorNotifier>().addListener(() => setState(() {}));
+    get<ColorNotifier>().addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    Bilocator.get<ColorNotifier>().removeListener(() => setState(() {}));
+    get<ColorNotifier>().removeListener(() => setState(() {}));
     super.dispose();
   }
 
-  void _incrementCounter() => setState(() => _counter++);
-
   @override
   Widget build(BuildContext context) {
-    return Bilocator<FortyTwoService>(
-        location: Location.tree,
-        builder: () => FortyTwoService(),
-        child: Scaffold(
-            body: Center(
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text('$_counter',
-                  style: TextStyle(
-                      fontSize: 64, color: listenTo<ColorNotifier>(listener: () => setState(() {})).color.value)),
-              OutlinedButton(
-                  onPressed: () => setState(() => _counter = Bilocator.get<RandomService>().number),
-                  child: const Text('Set Random (with context.get)')),
-              Builder(
-                  builder: (context) => OutlinedButton(
-                      onPressed: () => _counter = context.of<FortyTwoService>().number,
-                      child: const Text('Set 42 (with context.of)'))),
-            ])),
-            floatingActionButton: FloatingActionButton(
-              onPressed: _incrementCounter,
-              child: const Icon(Icons.add),
-            )));
+    return Scaffold(
+        body: Center(
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(context.of<Counter>().count.toString(),
+              style:
+                  TextStyle(fontSize: 64, color: listenTo<ColorNotifier>(listener: () => setState(() {})).color.value)),
+          OutlinedButton(
+              onPressed: () => context.of<Counter>().count = get<RandomService>().number,
+              child: const Text('Set Random')),
+          OutlinedButton(
+            onPressed: () => context.of<Counter>().count = 0,
+            child: const Text('Clear'),
+          ),
+        ])),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => context.of<Counter>().count++,
+          child: const Icon(Icons.add),
+        ));
+  }
+}
+
+class Counter extends ChangeNotifier {
+  int _count = 0;
+  int get count => _count;
+  set count(int value) {
+    _count = value;
+    notifyListeners();
   }
 }
 
@@ -67,7 +75,7 @@ class ColorNotifier extends ChangeNotifier {
   late final color = ValueNotifier<Color>(Colors.black)..addListener(notifyListeners);
 
   ColorNotifier() {
-    _timer = Timer.periodic(const Duration(seconds: 2), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
       color.value = <Color>[Colors.orange, Colors.purple, Colors.cyan][++_counter % 3];
     });
   }
@@ -78,13 +86,6 @@ class ColorNotifier extends ChangeNotifier {
   void dispose() {
     _timer.cancel();
     super.dispose();
-  }
-}
-
-class FortyTwoService extends ChangeNotifier {
-  int get number {
-    notifyListeners();
-    return 42;
   }
 }
 
