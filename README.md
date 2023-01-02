@@ -4,6 +4,8 @@
 
 A Flutter hybrid locator that manages models in a global registry (like GetIt) and in the widget tree (like Provider, InheritedWidget).
 
+Bilocator is used my by the ![MVVM+](https://pub.dev/packages/mvvm_plus) state management packages, so is battle tested.
+
 Bilocator goals:
 - Locate single services in a global registry.
 - Locate inherited models in the widget tree.
