@@ -175,15 +175,16 @@ class _BilocatorState<T extends Object> extends State<Bilocator<T>> with Bilocat
   void initState() {
     super.initState();
     initStateImpl(
-        location: widget.location,
-        builder: widget.builder,
-        name: widget.name,
-        onInitialization: (object) {
-          if (object is ChangeNotifier) {
-            changeNotifier = object;
-            object.addListener(update);
-          }
-        });
+      location: widget.location,
+      builder: widget.builder,
+      name: widget.name,
+      onInitialization: (object) {
+        if (object is ChangeNotifier) {
+          changeNotifier = object;
+          object.addListener(update);
+        }
+      },
+    );
   }
 
   @override
