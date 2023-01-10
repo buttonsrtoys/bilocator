@@ -89,10 +89,12 @@ class Bilocator<T extends Object> extends StatefulWidget {
     required _LazyInitializer lazyInitializer,
     String? name,
   }) {
-    if (!_registry.containsKey(type)) {
-      _registry[type] = <String?, _RegistryEntry>{};
+    assert(type != Object || lazyInitializer.instance != null);
+    final Type updatedType = type == Object ? lazyInitializer.instance.runtimeType : type;
+    if (!_registry.containsKey(updatedType)) {
+      _registry[updatedType] = <String?, _RegistryEntry>{};
     }
-    _registry[type]![name] = _RegistryEntry(type: type, lazyInitializer: lazyInitializer);
+    _registry[updatedType]![name] = _RegistryEntry(type: updatedType, lazyInitializer: lazyInitializer);
   }
 
   /// Unregister an [Object] so that it can no longer be retrieved with [Bilocator.get]
