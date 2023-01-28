@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
 import 'package:bilocator/bilocator.dart';
+import 'package:flutter/material.dart';
 
 void main() => runApp(myApp());
 

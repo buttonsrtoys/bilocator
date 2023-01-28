@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bilocator/bilocator.dart';
+import 'package:bilocator/src/src.dart';
 
 class MyModel {
   final answer = 42;
