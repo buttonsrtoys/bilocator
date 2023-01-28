@@ -89,10 +89,12 @@ class Bilocator<T extends Object> extends StatefulWidget {
     required _LazyInitializer lazyInitializer,
     String? name,
   }) {
-    if (!_registry.containsKey(type)) {
-      _registry[type] = <String?, _RegistryEntry>{};
+    assert(type != Object);
+    final Type updatedType = type == Object ? lazyInitializer.instance.runtimeType : type;
+    if (!_registry.containsKey(updatedType)) {
+      _registry[updatedType] = <String?, _RegistryEntry>{};
     }
-    _registry[type]![name] = _RegistryEntry(type: type, lazyInitializer: lazyInitializer);
+    _registry[updatedType]![name] = _RegistryEntry(type: updatedType, lazyInitializer: lazyInitializer);
   }
 
   /// Unregister an [Object] so that it can no longer be retrieved with [Bilocator.get]
@@ -533,7 +535,7 @@ mixin Observer {
   T listenTo<T extends ChangeNotifier>(
       {BuildContext? context, T? notifier, String? name, required void Function() listener}) {
     assert(toOne(context) + toOne(notifier) + toOne(name) <= 1,
-        'listenTo can only receive non-null for "context", "instance", or "name" but not two or more can be non-null.');
+        'listenTo can only receive non-null for "context", "notifier", or "name" but not two or more can be non-null.');
     final notifierInstance = context == null ? notifier ?? Bilocator.get<T>(name: name) : context.get<T>();
     final subscription = _Subscription(changeNotifier: notifierInstance, listener: listener);
     if (!_subscriptions.contains(subscription)) {

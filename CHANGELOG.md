@@ -6,6 +6,12 @@ trying to register BilocatorDelegates during a hot reload.
 available earlier.
 - Improved the demo app to test context.of
 
+## 0.5.3
+- Add runtimeCheck when consumer omits generic type.
+- Improved error messages.
+- Refactored Bilocators to register from constructor.
+- Added UniqueKeysManager to prevent registering on hot reload.
+
 ## 0.5.2
 - Improved readme.
 
