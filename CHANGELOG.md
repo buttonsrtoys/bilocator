@@ -1,3 +1,6 @@
+## 0.5.5
+- Repaired lib/bilocator.dart
+
 ## 0.5.4
 - Add runtimeCheck when consumer omits generic type.
 - Upgraded packages.
