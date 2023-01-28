@@ -1,3 +1,7 @@
+## 0.5.4
+- Add runtimeCheck when consumer omits generic type.
+- Upgraded packages.
+
 ## 0.5.3
 - Improved error messages to provide suggestions on how to fix exceptions.
 - Added a Key check to block Bilocators with the same key from registering. This fixes Bilocators 
@@ -5,15 +9,6 @@ trying to register BilocatorDelegates during a hot reload.
 - Changed Bilocators to register data from constructor instead of initState so the data is 
 available earlier.
 - Improved the demo app to test context.of
-
-## 0.5.4
-- Add runtimeCheck when consumer omits generic type.
-- Upgraded packages.
-
-## 0.5.3
-- Improved error messages.
-- Refactored Bilocators to register from constructor.
-- Added UniqueKeysManager to prevent registering on hot reload.
 
 ## 0.5.2
 - Improved readme.
