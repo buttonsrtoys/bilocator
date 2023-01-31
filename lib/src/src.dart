@@ -172,15 +172,29 @@ class Bilocator<T extends Object> extends StatefulWidget {
   }
 
   /// Get a registered [T]
-  static T get<T extends Object>({String? name}) {
-    if (!Bilocator.isRegistered<T>(name: name)) {
-      throw Exception(
-        'Bilocator tried to get an instance of type $T with name $name but it is not registered. Possible causes:\n'
-        ' - Data was stored in the widget tree using `location: Location.tree` so not found in the registry. See the '
-        'documentation for Bilocator for more information.\n\n',
-      );
+  static T get<T extends Object>({String? name, String? Function(List<String?>)? filter}) {
+    assert(name == null || filter == null, 'Bilocator.get failed. `name` or `filter` cannot both be non-null.');
+    String? updatedName;
+    if (filter == null) {
+      updatedName = name;
+      if (!Bilocator.isRegistered<T>(name: name)) {
+        throw Exception(
+          'Bilocator tried to get an instance of type $T with name $name but it is not registered. Possible causes:\n'
+          ' - Data was stored in the widget tree using `location: Location.tree` so not found in the registry. See the '
+          'documentation for Bilocator for more information.\n\n',
+        );
+      }
+    } else {
+      if (_registry[T] == null) {
+        throw Exception(
+          'Bilocator tried to get an instance of type $T none are registered. Possible causes:\n'
+          ' - Data was stored in the widget tree using `location: Location.tree` so not found in the registry. See the '
+          'documentation for Bilocator for more information.\n\n',
+        );
+      }
+      updatedName = filter(_registry[T]!.keys.toList());
     }
-    return _registry[T]![name]!.lazyInitializer.instance as T;
+    return _registry[T]![updatedName]!.lazyInitializer.instance as T;
   }
 }
 
