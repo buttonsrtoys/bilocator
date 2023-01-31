@@ -1,6 +1,6 @@
 name: bilocator
 description: A locator that manages models in a global registry (like GetIt) and in the widget tree (like Provider, InheritedWidget).
-version: 0.5.6
+version: 0.6.0
 repository: https://github.com/buttonsrtoys/bilocator
 issue_tracker: https://github.com/buttonsrtoys/bilocator/issues
 
