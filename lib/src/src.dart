@@ -174,7 +174,15 @@ class Bilocator<T extends Object> extends StatefulWidget {
   }
 
   /// Get a registered [T]
-  static T get<T extends Object>({String? name, required Filter? filter}) {
+  ///
+  /// [name] is the used when locating a single service but not an inherited model.
+  /// [filter] is a custom function that receives a list of the names of all the registered objects of type [T] and
+  /// returns a String? that specifies which name to select. For example, if the registry contained objects of type
+  /// `BookPage` with names "Page 3", "Page 4", and "Page 5", and you wanted to get the first one found:
+  ///
+  ///     final BookPage firstLetter = Bilocator.get<GreekLetter>(filter: (pageNames) => pageNames[0]);
+  ///
+  static T get<T extends Object>({String? name, Filter? filter}) {
     assert(name == null || filter == null, 'Bilocator.get failed. `name` or `filter` cannot both be non-null.');
     final String? updatedName;
     if (filter == null) {
@@ -535,6 +543,12 @@ mixin Observer {
   /// located with type [T] and [name], where [name] is the optional name assigned to the ChangeNotifier when it was
   /// registered.
   ///
+  /// [filter] is a custom function that receives a list of the names of all the registered objects of type [T] and
+  /// returns a String? that specifies which name to select. For example, if the registry contained objects of type
+  /// `BookPage` with names "Page 3", "Page 4", and "Page 5", and you wanted to get the first one found:
+  ///
+  ///     final BookPage firstLetter = Bilocator.get<GreekLetter>(filter: (pageNames) => pageNames[0]);
+  ///
   /// A common use case for passing [notifier] is using [get] to retrieve a registered object and listening to one of
   /// its ValueNotifiers:
   ///
@@ -567,11 +581,13 @@ mixin Observer {
     BuildContext? context,
     T? notifier,
     String? name,
+    Filter? filter,
     required void Function() listener,
   }) {
     assert(toOne(context) + toOne(notifier) + toOne(name) <= 1,
         'listenTo can only receive non-null for "context", "notifier", or "name" but not two or more can be non-null.');
-    final notifierInstance = context == null ? notifier ?? Bilocator.get<T>(name: name) : context.get<T>();
+    final notifierInstance =
+        context == null ? notifier ?? Bilocator.get<T>(name: name, filter: filter) : context.get<T>();
     final subscription = _Subscription(changeNotifier: notifierInstance, listener: listener);
     if (!_subscriptions.contains(subscription)) {
       subscription.subscribe();
@@ -585,11 +601,17 @@ mixin Observer {
   /// If [context] is null, gets a single service from the registry.
   /// If [context] is non-null, gets an inherited model from an ancestor located by context.
   /// [name] is the used when locating a single service but not an inherited model.
-  T get<T extends Object>({BuildContext? context, String? name}) {
+  /// [filter] is a custom function that receives a list of the names of all the registered objects of type [T] and
+  /// returns a String? that specifies which name to select. For example, if the registry contained objects of type
+  /// `BookPage` with names "Page 3", "Page 4", and "Page 5", and you wanted to get the first one found:
+  ///
+  ///     final BookPage firstLetter = Bilocator.get<GreekLetter>(filter: (pageNames) => pageNames[0]);
+  ///
+  T get<T extends Object>({BuildContext? context, String? name, Filter? filter}) {
     assert(context == null || name == null,
         '"get" was passed a non-null value for "name" but cannot locate an inherited model by name.');
     if (context == null) {
-      return Bilocator.get<T>(name: name);
+      return Bilocator.get<T>(name: name, filter: filter);
     } else {
       return context.get<T>();
     }
