@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 
+typedef Filter = String? Function(List<String?>);
+
 enum Location {
   registry,
   tree,
@@ -172,9 +174,9 @@ class Bilocator<T extends Object> extends StatefulWidget {
   }
 
   /// Get a registered [T]
-  static T get<T extends Object>({String? name, String? Function(List<String?>)? filter}) {
+  static T get<T extends Object>({String? name, required Filter? filter}) {
     assert(name == null || filter == null, 'Bilocator.get failed. `name` or `filter` cannot both be non-null.');
-    String? updatedName;
+    final String? updatedName;
     if (filter == null) {
       updatedName = name;
       if (!Bilocator.isRegistered<T>(name: name)) {
@@ -561,8 +563,12 @@ mixin Observer {
   ///    }
   ///
   @protected
-  T listenTo<T extends ChangeNotifier>(
-      {BuildContext? context, T? notifier, String? name, required void Function() listener}) {
+  T listenTo<T extends ChangeNotifier>({
+    BuildContext? context,
+    T? notifier,
+    String? name,
+    required void Function() listener,
+  }) {
     assert(toOne(context) + toOne(notifier) + toOne(name) <= 1,
         'listenTo can only receive non-null for "context", "notifier", or "name" but not two or more can be non-null.');
     final notifierInstance = context == null ? notifier ?? Bilocator.get<T>(name: name) : context.get<T>();
