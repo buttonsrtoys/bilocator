@@ -91,6 +91,16 @@ class Bilocator<T extends Object> extends StatefulWidget {
   }) {
     assert(type != Object);
     final Type updatedType = type == Object ? lazyInitializer.instance.runtimeType : type;
+    if (Bilocator._isRegistered(type: updatedType, name: name)) {
+      throw Exception(
+          'Bilocator tried to register an object of type $updatedType with name $name but it was already registered. '
+          'Only one object with the same type/name can be stored in the registry. Possible solutions:\n'
+          '- Give objects of the same type unique names. E.g.,\n'
+          '    Bilocator<MyModel>(\n'
+          "      name: 'some unique name',\n"
+          "      child: Home(),\n"
+          "    ),\n");
+    }
     if (!_registry.containsKey(updatedType)) {
       _registry[updatedType] = <String?, _RegistryEntry>{};
     }
@@ -147,8 +157,13 @@ class Bilocator<T extends Object> extends StatefulWidget {
 
   /// Determines whether an [Object] is registered and therefore retrievable with [Bilocator.get]
   static bool isRegistered<T extends Object>({String? name}) {
-    assert(T != Object, _missingGenericError('isRegistered', 'Object'));
-    return _registry.containsKey(T) && _registry[T]!.containsKey(name);
+    return _isRegistered(type: T, name: name);
+  }
+
+  /// Determines whether an [Object] is registered and therefore retrievable with [Bilocator.get]
+  static bool _isRegistered({required Type type, required String? name}) {
+    assert(type != Object, _missingGenericError('isRegistered', 'Object'));
+    return _registry.containsKey(type) && _registry[type]!.containsKey(name);
   }
 
   /// Determines whether an [Object] is registered and therefore retrievable with [Bilocator.get]

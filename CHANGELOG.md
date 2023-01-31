@@ -1,3 +1,7 @@
+## 0.5.6
+- Added exception for when adding an existing type/name keys to registry.
+- Fixed example test.
+
 ## 0.5.5
 - Repaired lib/bilocator.dart
 
