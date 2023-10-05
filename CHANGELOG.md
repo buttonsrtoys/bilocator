@@ -1,3 +1,6 @@
+## 0.6.1
+- Fixed ReadMe images.
+
 ## 0.6.0
 - Added `filter` parameter to `get` and `listenTo`
 - Added exception for when adding an existing type/name keys to registry.

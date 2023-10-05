@@ -1,6 +1,6 @@
 # bilocator
 
-![bilocator logo](https://github.com/buttonsrtoys/bilocator/blob/main/assets/BilocatorLogo.png)
+![bilocator logo](https://raw.githubusercontent.com/buttonsrtoys/bilocator/main/assets/BilocatorLogo.png)
 
 A Flutter hybrid locator that manages models in a global registry (like GetIt) and in the widget tree (like Provider, InheritedWidget).
 
@@ -164,7 +164,7 @@ There are three registered services:
 
 The first service was added to the widget tree with `Bilocator`. The remaining services were added with `Bilocators`.
 
-![example](https://github.com/buttonsrtoys/bilocator/blob/main/example/example.gif)
+![example](https://raw.githubusercontent.com/buttonsrtoys/bilocator/main/example/example.gif)
 
 ## That's It! 
 
