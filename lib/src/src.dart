@@ -530,6 +530,57 @@ class _RegistryEntry {
   final _LazyInitializer lazyInitializer;
 }
 
+/// An instance of [Observer] for use within a mixin.
+///
+/// Dart doesn't support mixins using `with` so this is a workaround.
+class _ObserverDelegate with Observer {}
+
+/// Adds observer functionality to State classes associated with StatefulWidget
+///
+/// [listenTo] adds a listener to ChangeNotifier and calls setState on ChangeNotifier.notifyListeners.
+/// On State.dispose(), the listener is removed.
+mixin StateObserver<T extends StatefulWidget> on State<T> {
+  /// See comments for [_ObserverDelegate]
+  final observerDelegate = _ObserverDelegate();
+
+  @override
+  void dispose() {
+    observerDelegate.cancelSubscriptions();
+    super.dispose();
+  }
+
+  /// See [Observer.listenTo] for information on parameters.
+  U listenTo<U extends ChangeNotifier>({
+    Location? location,
+    String? name,
+    U? notifier,
+    Filter? filter,
+  }) {
+    final contextValue = location == Location.tree ? context : null;
+    return observerDelegate.listenTo(
+      context: contextValue,
+      notifier: notifier,
+      name: name,
+      filter: filter,
+      listener: () => setState(() {}),
+    );
+  }
+
+  /// See [Observer.get] for information on parameters.
+  U get<U extends Object>({
+    Location? location,
+    String? name,
+    Filter? filter,
+  }) {
+    final contextValue = location == Location.tree ? context : null;
+    return observerDelegate.get(
+      context: contextValue,
+      name: name,
+      filter: filter,
+    );
+  }
+}
+
 /// Implements observer pattern.
 mixin Observer {
   final _subscriptions = <_Subscription>[];
@@ -607,7 +658,11 @@ mixin Observer {
   ///
   ///     final BookPage firstLetter = Bilocator.get<GreekLetter>(filter: (pageNames) => pageNames[0]);
   ///
-  T get<T extends Object>({BuildContext? context, String? name, Filter? filter}) {
+  T get<T extends Object>({
+    BuildContext? context,
+    String? name,
+    Filter? filter,
+  }) {
     assert(context == null || name == null,
         '"get" was passed a non-null value for "name" but cannot locate an inherited model by name.');
     if (context == null) {
