@@ -539,7 +539,7 @@ class _ObserverDelegate with Observer {}
 ///
 /// [listenTo] adds a listener to ChangeNotifier and calls setState on ChangeNotifier.notifyListeners.
 /// On State.dispose(), the listener is removed.
-mixin StateObserver<T extends StatefulWidget> on State<T> {
+mixin Notifiable<T extends StatefulWidget> on State<T> {
   /// See comments for [_ObserverDelegate]
   final observerDelegate = _ObserverDelegate();
 
