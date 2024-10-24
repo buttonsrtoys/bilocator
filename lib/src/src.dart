@@ -639,7 +639,7 @@ mixin Observer {
         'listenTo can only receive non-null for "context", "notifier", or "name" but not two or more can be non-null.');
     final notifierInstance =
         context == null ? notifier ?? Bilocator.get<T>(name: name, filter: filter) : context.get<T>();
-    final subscription = _Subscription(changeNotifier: notifierInstance, listener: listener);
+    final subscription = _Subscription(listenable: notifierInstance, listener: listener);
     if (!_subscriptions.contains(subscription)) {
       subscription.subscribe();
       _subscriptions.add(subscription);
@@ -715,17 +715,17 @@ int toOne(Object? object) {
 
 /// Manages a listener that subscribes to a ChangeNotifier
 class _Subscription extends Equatable {
-  const _Subscription({required this.changeNotifier, required this.listener});
+  const _Subscription({required this.listenable, required this.listener});
 
   final void Function() listener;
-  final ChangeNotifier changeNotifier;
+  final Listenable listenable;
 
-  void subscribe() => changeNotifier.addListener(listener);
+  void subscribe() => listenable.addListener(listener);
 
-  void unsubscribe() => changeNotifier.removeListener(listener);
+  void unsubscribe() => listenable.removeListener(listener);
 
   @override
-  List<Object?> get props => [changeNotifier, listener];
+  List<Object?> get props => [listenable, listener];
 }
 
 final _registry = <Type, Map<String?, _RegistryEntry>>{};
