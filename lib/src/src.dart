@@ -209,7 +209,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
 }
 
 class _BilocatorState<T extends Object> extends State<Bilocator<T>> with BilocatorStateImpl<T> {
-  ChangeNotifier? changeNotifier;
+  Listenable? changeNotifier;
   void update() => setState(() {});
 
   @override
@@ -550,7 +550,7 @@ mixin StateObserver<T extends StatefulWidget> on State<T> {
   }
 
   /// See [Observer.listenTo] for information on parameters.
-  U listenTo<U extends ChangeNotifier>({
+  U listenTo<U extends Listenable>({
     Location? location,
     String? name,
     U? notifier,
@@ -587,7 +587,7 @@ mixin Observer {
 
   /// Locates a single service or inherited model and adds a listener ('subscribes') to it.
   ///
-  /// The located object must be a ChangeNotifier.
+  /// The located object must be a ChangeNotifier or a subclass of ChangeNotifier (e.g., ValueNotifier).
   ///
   /// If [context] is passed, the ChangeNotifier is located on the widget tree. If the ChangeNotifier is already
   /// located, you can pass it to [notifier]. If [context] and [notifier] are null, a registered ChangeNotifier is
@@ -628,7 +628,7 @@ mixin Observer {
   ///    }
   ///
   @protected
-  T listenTo<T extends ChangeNotifier>({
+  T listenTo<T extends Listenable>({
     BuildContext? context,
     T? notifier,
     String? name,
