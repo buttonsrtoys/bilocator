@@ -75,11 +75,9 @@ class Bilocator<T extends Object> extends StatefulWidget {
 
     // If user provided a builder, register a lazy singleton using that builder:
     if (builder != null) {
-      debugPrint('******** getIt.registerLazySingleton');
       getIt.registerLazySingleton<T>(builder, instanceName: name, dispose: _maybeDisposeChangeNotifier);
     } else if (instance != null) {
       // If an instance was provided, register it as a lazy singleton:
-      debugPrint('******** getIt.registerLazySingleton');
       getIt.registerLazySingleton<T>(() => instance, instanceName: name, dispose: _maybeDisposeChangeNotifier);
     } else {
       throw Exception(
@@ -103,7 +101,6 @@ class Bilocator<T extends Object> extends StatefulWidget {
         'Bilocator tried to register an instance of type $runtimeType with name $name but it is already registered.\n',
       );
     }
-    debugPrint('******** registerByRuntimeType');
     getIt.registerLazySingleton<Object>(() => instance,
         instanceName: combinedName, dispose: _maybeDisposeChangeNotifier);
   }
@@ -218,7 +215,6 @@ class _BilocatorState<T extends Object> extends State<Bilocator<T>> with Bilocat
 
   @override
   void dispose() {
-    debugPrint('******** _BilocatorState.dispose()');
     if (changeNotifier != null) {
       changeNotifier!.removeListener(update);
     }
@@ -258,9 +254,7 @@ mixin BilocatorStateImpl<T extends Object> {
     String? name,
     required bool dispose,
   }) {
-    debugPrint('******** disposeImpl(dispose: $dispose)');
     if (location == Location.registry || isRegisteredInheritedModel.value) {
-      debugPrint('******** disposeImpl unregistering...');
       Bilocator.unregister<T>(name: name, dispose: false);
     }
     if (dispose) {
@@ -353,18 +347,14 @@ class _LazyInitializer<T extends Object> {
   }
 
   void dispose() {
-    debugPrint('******** _LazyInitialized.dispose() hasInitialized: $hasInitialized');
     if (hasInitialized && instance is ChangeNotifier) {
-      debugPrint('******** _LazyInitialized.dispose() disposing...');
       (instance as ChangeNotifier).dispose();
     }
   }
 }
 
 void _maybeDisposeChangeNotifier(Object object) {
-  debugPrint('******** _maybeDisposeChangeNotifier');
   if (object is ChangeNotifier) {
-    debugPrint('******** _disposeChangeNotifier');
     object.dispose();
   }
 }

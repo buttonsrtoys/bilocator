@@ -1,6 +1,6 @@
+import 'package:bilocator/src/src.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bilocator/src/src.dart';
 
 class MyModel {
   final answer = 42;
@@ -66,6 +66,7 @@ void main() {
       bool disposeCalled = false;
       Bilocator.register<MyChangeNotifier>(instance: MyChangeNotifier(() => disposeCalled = true));
       expect(Bilocator.isRegistered<MyChangeNotifier>(), true);
+      Bilocator.get<MyChangeNotifier>();
       Bilocator.unregister<MyChangeNotifier>();
       expect(disposeCalled, true);
     });
