@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   equatable: ^2.0.5
+  get_it: ^8.0.3
+  approved: ^0.1.7
 
 dev_dependencies:
   flutter_test:

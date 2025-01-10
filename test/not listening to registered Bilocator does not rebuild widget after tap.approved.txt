@@ -1,0 +1,4 @@
+Text: {data: 'Increment', count: 1}
+Text: {data: 'Register', count: 1}
+Text: {data: 'Unregister', count: 1}
+Text: {data: '42', count: 1}

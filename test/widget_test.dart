@@ -1,6 +1,7 @@
+import 'package:approved/approved.dart';
+import 'package:bilocator/src/src.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bilocator/src/src.dart';
 
 const _number = 42;
 const _incrementButtonText = 'Increment';
@@ -106,7 +107,16 @@ void main() {
   tearDown(() {
     /// Ensure no residuals
     expect(Bilocator.isRegistered<MyModel>(), false);
+    // Rich, uncomment this test?
     expect(numberOfModelsThatNeedDispose, 0);
+  });
+
+  setUpAll(() async {
+    await Approved.setUpAll();
+  });
+
+  tearDownAll(() async {
+    Approved.tearDownAll();
   });
 
   group('MyTestWidget', () {
@@ -114,12 +124,15 @@ void main() {
       await tester.pumpWidget(testApp(location: Location.registry, listen: false));
 
       expect(Bilocator.isRegistered<MyModel>(), true);
-      expect(find.text('$_number'), findsOneWidget);
+      // expect(find.text('$_number'), findsOneWidget);
+
+      tester.approvalTest('before tap');
 
       await tester.tap(find.text(_incrementButtonText));
       await tester.pump();
 
-      expect(find.text('$_number'), findsOneWidget);
+      tester.approvalTest('after tap');
+      // expect(find.text('$_number'), findsOneWidget);
     });
 
     testWidgets('listening to registered Bilocator rebuilds widget', (WidgetTester tester) async {

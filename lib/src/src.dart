@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
+import 'package:get_it/get_it.dart';
 
 typedef Filter = String? Function(List<String?>);
 
@@ -17,10 +18,10 @@ enum Location {
 /// [child] is the child widget.
 /// [location] is where to store the model. Set to [Location.tree] to store the model as an inherited model on the
 /// widget tree, which internally uses an InheritedWidget. Set to [Location.registry] to store the model as a single
-/// service in a registry. Single services in the registry are accessible from any branch of the widget tree but can
-/// only have one instance of a given type [T] and [name]. Inherited models can have unlimited instances of type [T]
-/// but are only accessible by descendants. See [context.get], [Observer.get], and [Observer.listenTo] for accessing
-/// single services and inherited models.
+/// service in the registry (now backed by GetIt). Single services in the registry are accessible from any branch
+/// of the widget tree but can only have one instance of a given type [T] and [name]. Inherited models can have
+/// unlimited instances of type [T] but are only accessible by descendants. See [context.get], [Observer.get], and
+/// [Observer.listenTo] for accessing single services and inherited models.
 ///
 /// Bilocator also manages ChangeNotifiers. If [T] is of type ChangeNotifier then a listener is added to the build
 /// ChangeNotifier that rebuilds this Bilocator widget when [ChangeNotifier.notifyListeners] is called. Also, its
@@ -46,26 +47,39 @@ class Bilocator<T extends Object> extends StatefulWidget {
   @override
   State<Bilocator<T>> createState() => _BilocatorState<T>();
 
+  // Reference to the global GetIt instance used as our registry.
+  static final GetIt getIt = GetIt.instance;
+
   /// Register an [Object] for retrieving with [Bilocator.get]
   ///
   /// [Bilocator] and [Bilocators] automatically call [register] and [unregister] so this function
-  /// is not typically used. It is only used to manually register or unregister an [Object]. E.g., if
-  /// you could register/unregister a [ValueNotifier].
+  /// is not typically used. It is only used to manually register or unregister an [Object].
   static void register<T extends Object>({T? instance, T Function()? builder, String? name}) {
     if (Bilocator.isRegistered<T>(name: name)) {
       throw Exception(
         'Bilocator tried to register an instance of type $T with name $name but it is already registered. Possible '
         'causes:\n'
         ' - Data was stored in the widget tree using the parameter `location: Location.tree` but the registry was '
-        'searched instead. This can be fixed by searching the widget tree with a BuildContext or my storing the data '
+        'searched instead. This can be fixed by searching the widget tree with a BuildContext or by storing the data '
         'in the registry using `Location.registry`\n'
-        ' - If this exception occurred during a hot reload and a hot restart fixes problem, the issue is likely that '
+        ' - If this exception occurred during a hot reload and a hot restart fixes the problem, the issue is likely that '
         'the same bilocator is trying to re-register during a hot reload. This can be fixed by assigning the bilocator '
         'a unique key (Bilocator checks whether the data associated with the key is already registered). See the '
         'documentation for the Bilocators class for more information.\n\n',
       );
     }
-    _register(type: T, lazyInitializer: _LazyInitializer(builder: builder, instance: instance), name: name);
+
+    // If user provided a builder, register a lazy singleton using that builder:
+    if (builder != null) {
+      getIt.registerLazySingleton<T>(builder, instanceName: name);
+    } else if (instance != null) {
+      // If an instance was provided, register it as a lazy singleton:
+      getIt.registerLazySingleton<T>(() => instance, instanceName: name);
+    } else {
+      throw Exception(
+        'Bilocator.register<$T> called without builder or instance.\n',
+      );
+    }
   }
 
   /// Register by runtimeType for when compiled type is not available.
@@ -77,36 +91,13 @@ class Bilocator<T extends Object> extends StatefulWidget {
   /// [name] is a unique name key and only needed when more than one instance is registered of the same type.
   static void registerByRuntimeType({required Object instance, String? name}) {
     final runtimeType = instance.runtimeType;
+    final combinedName = _combinedName(runtimeType, name);
     if (Bilocator.isRegisteredByRuntimeType(runtimeType: runtimeType, name: name)) {
       throw Exception(
         'Bilocator tried to register an instance of type $runtimeType with name $name but it is already registered.\n',
       );
     }
-    _register(type: runtimeType, lazyInitializer: _LazyInitializer(builder: null, instance: instance), name: name);
-  }
-
-  /// [type] is not a generic because sometimes runtimeType is required.
-  static void _register({
-    required Type type,
-    required _LazyInitializer lazyInitializer,
-    String? name,
-  }) {
-    assert(type != Object);
-    final Type updatedType = type == Object ? lazyInitializer.instance.runtimeType : type;
-    if (Bilocator._isRegistered(type: updatedType, name: name)) {
-      throw Exception(
-          'Bilocator tried to register an object of type $updatedType with name $name but it was already registered. '
-          'Only one object with the same type/name can be stored in the registry. Possible solutions:\n'
-          '- Give objects of the same type unique names. E.g.,\n'
-          '    Bilocator<MyModel>(\n'
-          "      name: 'some unique name',\n"
-          "      child: Home(),\n"
-          "    ),\n");
-    }
-    if (!_registry.containsKey(updatedType)) {
-      _registry[updatedType] = <String?, _RegistryEntry>{};
-    }
-    _registry[updatedType]![name] = _RegistryEntry(type: updatedType, lazyInitializer: lazyInitializer);
+    getIt.registerLazySingleton<Object>(() => instance, instanceName: combinedName);
   }
 
   /// Unregister an [Object] so that it can no longer be retrieved with [Bilocator.get]
@@ -121,10 +112,15 @@ class Bilocator<T extends Object> extends StatefulWidget {
         'documentation for Bilocator for more information.\n\n',
       );
     }
-    final registryEntry = _unregister(type: T, name: name);
-    if (registryEntry != null && dispose) {
-      registryEntry.lazyInitializer.dispose();
-    }
+
+    getIt.unregister<T>(
+        instanceName: name,
+        disposingFunction: (object) {
+          // If it's a ChangeNotifier, call dispose if requested:
+          if (dispose && object is ChangeNotifier) {
+            object.dispose();
+          }
+        });
   }
 
   /// Unregister by runtimeType for when compiled type is not available.
@@ -132,79 +128,67 @@ class Bilocator<T extends Object> extends StatefulWidget {
   /// [unregister] is preferred. However, use when type is not known at compile time (e.g., a super-class is
   /// unregistering a sub-class).
   ///
-  /// [runtimeType] is value return by [Object.runtimeType]
+  /// [runtimeType] is value returned by [Object.runtimeType]
   /// [name] is a unique name key and only needed when more than one instance is registered of the same type. (See
   /// [Bilocator] comments for more information on [dispose]).
   /// If object is a ChangeNotifier, [dispose] determines whether its dispose function is called. Ignored otherwise.
   static void unregisterByRuntimeType({required Type runtimeType, String? name, bool dispose = true}) {
+    final combinedName = _combinedName(runtimeType, name);
     if (!Bilocator.isRegisteredByRuntimeType(runtimeType: runtimeType, name: name)) {
       throw Exception(
         'Bilocator tried to unregister an instance of type $runtimeType with name $name but it is not registered.\n',
       );
     }
-    final registryEntry = _unregister(type: runtimeType, name: name);
-    if (registryEntry != null && dispose) {
-      registryEntry.lazyInitializer.dispose();
-    }
-  }
-
-  /// Unregisters but does not dispose.
-  static _RegistryEntry? _unregister({required Type type, String? name}) {
-    final registryEntry = _registry[type]!.remove(name);
-    if (_registry[type]!.isEmpty) {
-      _registry.remove(type);
-    }
-    return registryEntry;
+    getIt.unregister<Object>(
+        instanceName: combinedName,
+        disposingFunction: (object) {
+          if (dispose && object is ChangeNotifier) {
+            object.dispose();
+          }
+        });
   }
 
   /// Determines whether an [Object] is registered and therefore retrievable with [Bilocator.get]
   static bool isRegistered<T extends Object>({String? name}) {
-    return _isRegistered(type: T, name: name);
-  }
-
-  /// Determines whether an [Object] is registered and therefore retrievable with [Bilocator.get]
-  static bool _isRegistered({required Type type, required String? name}) {
-    assert(type != Object, _missingGenericError('isRegistered', 'Object'));
-    return _registry.containsKey(type) && _registry[type]!.containsKey(name);
+    return getIt.isRegistered<T>(instanceName: name);
   }
 
   /// Determines whether an [Object] is registered and therefore retrievable with [Bilocator.get]
   static bool isRegisteredByRuntimeType({required Type runtimeType, String? name}) {
-    return _registry.containsKey(runtimeType) && _registry[runtimeType]!.containsKey(name);
+    final combinedName = _combinedName(runtimeType, name);
+    return getIt.isRegistered<Object>(instanceName: combinedName);
   }
 
   /// Get a registered [T]
   ///
   /// [name] is the used when locating a single service but not an inherited model.
   /// [filter] is a custom function that receives a list of the names of all the registered objects of type [T] and
-  /// returns a String? that specifies which name to select. For example, if the registry contained objects of type
-  /// `BookPage` with names "Page 3", "Page 4", and "Page 5", and you wanted to get the first one found:
-  ///
-  ///     final BookPage firstLetter = Bilocator.get<GreekLetter>(filter: (pageNames) => pageNames[0]);
-  ///
+  /// returns a String? that specifies which name to select. However, GetIt does not support multiple registrations of
+  /// the same type in a list that you can filter. If you need multiple same-type registrations, register them with
+  /// unique `instanceName`s and retrieve the exact one.
   static T get<T extends Object>({String? name, Filter? filter}) {
-    assert(name == null || filter == null, 'Bilocator.get failed. `name` or `filter` cannot both be non-null.');
-    final String? updatedName;
-    if (filter == null) {
-      updatedName = name;
-      if (!Bilocator.isRegistered<T>(name: name)) {
-        throw Exception(
-          'Bilocator tried to get an instance of type $T with name $name but it is not registered. Possible causes:\n'
-          ' - Data was stored in the widget tree using `location: Location.tree` so not found in the registry. See the '
-          'documentation for Bilocator for more information.\n\n',
-        );
-      }
-    } else {
-      if (_registry[T] == null) {
-        throw Exception(
-          'Bilocator tried to get an instance of type $T none are registered. Possible causes:\n'
-          ' - Data was stored in the widget tree using `location: Location.tree` so not found in the registry. See the '
-          'documentation for Bilocator for more information.\n\n',
-        );
-      }
-      updatedName = filter(_registry[T]!.keys.toList());
+    assert(
+      name == null || filter == null,
+      'Bilocator.get failed. `name` or `filter` cannot both be non-null.',
+    );
+    if (filter != null) {
+      throw UnimplementedError(
+        'GetIt does not support retrieving multiple same-type registrations via a filter.\n'
+        'Use unique instanceName for each registration instead.\n',
+      );
     }
-    return _registry[T]![updatedName]!.lazyInitializer.instance as T;
+    if (!isRegistered<T>(name: name)) {
+      throw Exception(
+        'Bilocator tried to get an instance of type $T with name $name but it is not registered. Possible causes:\n'
+        ' - Data was stored in the widget tree using `location: Location.tree` so not found in the registry. See the '
+        'documentation for Bilocator for more information.\n\n',
+      );
+    }
+    return getIt<T>(instanceName: name);
+  }
+
+  static String _combinedName(Type runtimeType, String? name) {
+    return name == null ? '$runtimeType' : '$runtimeType-$name';
   }
 }
 
@@ -260,7 +244,7 @@ mixin BilocatorStateImpl<T extends Object> {
   }) {
     _lazyInitializer = _LazyInitializer<T>(builder: builder, instance: instance, onInitialization: onInitialization);
     if (location == Location.registry) {
-      Bilocator._register(type: T, lazyInitializer: _lazyInitializer, name: name);
+      Bilocator.register<T>(instance: instance, builder: builder, name: name);
     }
   }
 
@@ -310,7 +294,7 @@ extension BilocatorBuildContextExtension on BuildContext {
   ///
   /// The search is for the first match up the widget tree from the calling widget.
   /// This does not set up a dependency between the InheritedWidget and the context. For that, use [of].
-  /// Performs a lazy initialization if necessary. Throws exception of widget not found.
+  /// Performs a lazy initialization if necessary. Throws exception if widget not found.
   /// For those familiar with Provider, [get] is effectively `Provider.of<MyModel>(listen: false);`.
   T get<T extends Object>() {
     final inheritedWidget = _getInheritedWidget<T>();
@@ -321,7 +305,7 @@ extension BilocatorBuildContextExtension on BuildContext {
   ///
   /// Same idea as the "of" feature of Provider.of, Theme.of, etc. For no dependency, use [get].
   /// Performs a lazy initialization if necessary. An exception is thrown if [T] is not a [ChangeNotifier].
-  /// or the not match found.
+  /// or not found.
   T of<T extends ChangeNotifier>() {
     final _BilocatorInheritedWidget<T>? inheritedWidget =
         dependOnInheritedWidgetOfExactType<_BilocatorInheritedWidget<T>>();
@@ -417,9 +401,9 @@ final _uniqueKeysManager = _UniqueKeysManager();
 
 /// Register multiple Objects so they can be retrieved with [Bilocator.get]
 ///
-/// [Bilocators] only uses [Location.registry] and does not add widget to the widget try per [Location.tree].
+/// [Bilocators] only uses [Location.registry] and does not add a widget to the widget tree per [Location.tree].
 ///
-/// Under certain conditions, [Bilocators] can attempt to re-register deligates on a hot reload which will throw an
+/// Under certain conditions, [Bilocators] can attempt to re-register delegates on a hot reload which will throw an
 /// exception. Assigning a repeatable key prevents this, as Bilocator uses the key to check if it has already
 /// registered. E.g.,
 ///
@@ -430,23 +414,14 @@ final _uniqueKeysManager = _UniqueKeysManager();
 ///
 /// The lifecycle of each Object is bound to this widget. Each object is registered when this widget is added to the
 /// widget tree and unregistered when removed. If an Object is of type ChangeNotifier then its
-/// ChangeNotifier.dispose when it is unregistered.
-///
-/// usage:
-///   Bilocators(
-///     delegates: [
-///       BilocatorDelegate<MyService>(builder: () => MyService()),
-///       BilocatorDelegate<MyOtherService>(builder: () => MyOtherService()),
-///     ],
-///     child: MyWidget(),
-///   );
-///
+/// ChangeNotifier.dispose is called when it is unregistered.
 class Bilocators extends StatefulWidget {
   Bilocators({
     required this.delegates,
     required this.child,
     super.key,
   }) {
+    // If this key was not tracked before, register all delegates now:
     if (key == null || !_uniqueKeysManager.contains(key!)) {
       if (key != null) {
         _uniqueKeysManager.add(key!);
@@ -490,7 +465,7 @@ class _BilocatorsState extends State<Bilocators> {
 /// If object is a ChangeNotifier, [dispose] determines whether its dispose function is called. (See
 /// [Bilocator] comments for more information on [dispose]).
 ///
-/// See [Bilocator] for the difference between using [builder] and [instance]
+/// See [Bilocator] for the difference between using [builder] and [instance].
 class BilocatorDelegate<T extends Object> {
   BilocatorDelegate({
     this.builder,
@@ -511,23 +486,6 @@ class BilocatorDelegate<T extends Object> {
   void _unregister() {
     Bilocator.unregister<T>(name: name, dispose: dispose);
   }
-}
-
-/// A lazy registry entry
-///
-/// [instance] is a value of type [T]
-/// [builder] is a function that builds [instance]
-/// [type] is not a generic because something need to determine at runtime (e.g., runtimeType).
-///
-/// The constructor can receive either [instance] or [builder] but not both. Passing [builder] is recommended as it
-/// makes the implementation lazy. I.e., [builder] is executed on the first get.
-class _RegistryEntry {
-  _RegistryEntry({
-    required Type type,
-    required this.lazyInitializer,
-  }) : assert(type != Object, _missingGenericError('constructor _BilocatorEntry', 'Object'));
-
-  final _LazyInitializer lazyInitializer;
 }
 
 /// An instance of [Observer] for use within a mixin.
@@ -653,11 +611,8 @@ mixin Observer {
   /// If [context] is non-null, gets an inherited model from an ancestor located by context.
   /// [name] is the used when locating a single service but not an inherited model.
   /// [filter] is a custom function that receives a list of the names of all the registered objects of type [T] and
-  /// returns a String? that specifies which name to select. For example, if the registry contained objects of type
-  /// `BookPage` with names "Page 3", "Page 4", and "Page 5", and you wanted to get the first one found:
-  ///
-  ///     final BookPage firstLetter = Bilocator.get<GreekLetter>(filter: (pageNames) => pageNames[0]);
-  ///
+  /// returns a String? that specifies which name to select. See [Bilocator.get] for more info.
+  @protected
   T get<T extends Object>({
     BuildContext? context,
     String? name,
@@ -679,7 +634,7 @@ mixin Observer {
   /// make the inherited model globally available by registering it.
   /// [name] is assigned to the registered model. [name] is NOT used for locating the object.
   ///
-  /// Registered inherited models are unregister when their corresponding Bilocator widget is disposed.
+  /// Registered inherited models are unregistered when their corresponding Bilocator widget is disposed.
   void register<T extends Object>(BuildContext context, {String? name}) {
     context._getInheritedWidget<T>().registered.value = true;
     Bilocator.register<T>(instance: context.get<T>(), name: name);
@@ -727,8 +682,6 @@ class _Subscription extends Equatable {
   @override
   List<Object?> get props => [listenable, listener];
 }
-
-final _registry = <Type, Map<String?, _RegistryEntry>>{};
 
 String _missingGenericError(String function, String type) =>
     'Missing generic. The function "$function" was called without a custom subclass generic. Did you call '
