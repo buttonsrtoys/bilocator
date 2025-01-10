@@ -174,6 +174,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
       'Bilocator.get failed. `name` or `filter` cannot both be non-null.',
     );
     if (filter != null) {
+      // Rich, implement this
       throw UnimplementedError(
         'GetIt does not support retrieving multiple same-type registrations via a filter.\n'
         'Use unique instanceName for each registration instead.\n',
