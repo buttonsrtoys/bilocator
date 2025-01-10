@@ -97,6 +97,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
     final runtimeType = instance.runtimeType;
     final combinedName = _combinedName(runtimeType, name);
     if (Bilocator.isRegisteredByRuntimeType(runtimeType: runtimeType, name: name)) {
+      // Rich, you need to fix this.
       throw Exception(
         'Bilocator tried to register an instance of type $runtimeType with name $name but it is already registered.\n',
       );
