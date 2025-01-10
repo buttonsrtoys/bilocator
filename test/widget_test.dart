@@ -107,7 +107,6 @@ void main() {
   tearDown(() {
     /// Ensure no residuals
     expect(Bilocator.isRegistered<MyModel>(), false);
-    // Rich, uncomment this test?
     expect(numberOfModelsThatNeedDispose, 0);
   });
 

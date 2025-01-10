@@ -54,7 +54,11 @@ class Bilocator<T extends Object> extends StatefulWidget {
   ///
   /// [Bilocator] and [Bilocators] automatically call [register] and [unregister] so this function
   /// is not typically used. It is only used to manually register or unregister an [Object].
-  static void register<T extends Object>({T? instance, T Function()? builder, String? name}) {
+  static void register<T extends Object>({
+    T? instance,
+    T Function()? builder,
+    String? name,
+  }) {
     if (Bilocator.isRegistered<T>(name: name)) {
       throw Exception(
         'Bilocator tried to register an instance of type $T with name $name but it is already registered. Possible '
@@ -71,10 +75,12 @@ class Bilocator<T extends Object> extends StatefulWidget {
 
     // If user provided a builder, register a lazy singleton using that builder:
     if (builder != null) {
-      getIt.registerLazySingleton<T>(builder, instanceName: name);
+      debugPrint('******** getIt.registerLazySingleton');
+      getIt.registerLazySingleton<T>(builder, instanceName: name, dispose: _maybeDisposeChangeNotifier);
     } else if (instance != null) {
       // If an instance was provided, register it as a lazy singleton:
-      getIt.registerLazySingleton<T>(() => instance, instanceName: name);
+      debugPrint('******** getIt.registerLazySingleton');
+      getIt.registerLazySingleton<T>(() => instance, instanceName: name, dispose: _maybeDisposeChangeNotifier);
     } else {
       throw Exception(
         'Bilocator.register<$T> called without builder or instance.\n',
@@ -97,7 +103,9 @@ class Bilocator<T extends Object> extends StatefulWidget {
         'Bilocator tried to register an instance of type $runtimeType with name $name but it is already registered.\n',
       );
     }
-    getIt.registerLazySingleton<Object>(() => instance, instanceName: combinedName);
+    debugPrint('******** registerByRuntimeType');
+    getIt.registerLazySingleton<Object>(() => instance,
+        instanceName: combinedName, dispose: _maybeDisposeChangeNotifier);
   }
 
   /// Unregister an [Object] so that it can no longer be retrieved with [Bilocator.get]
@@ -114,13 +122,9 @@ class Bilocator<T extends Object> extends StatefulWidget {
     }
 
     getIt.unregister<T>(
-        instanceName: name,
-        disposingFunction: (object) {
-          // If it's a ChangeNotifier, call dispose if requested:
-          if (dispose && object is ChangeNotifier) {
-            object.dispose();
-          }
-        });
+      instanceName: name,
+      disposingFunction: _maybeDisposeChangeNotifier,
+    );
   }
 
   /// Unregister by runtimeType for when compiled type is not available.
@@ -214,6 +218,7 @@ class _BilocatorState<T extends Object> extends State<Bilocator<T>> with Bilocat
 
   @override
   void dispose() {
+    debugPrint('******** _BilocatorState.dispose()');
     if (changeNotifier != null) {
       changeNotifier!.removeListener(update);
     }
@@ -253,7 +258,9 @@ mixin BilocatorStateImpl<T extends Object> {
     String? name,
     required bool dispose,
   }) {
+    debugPrint('******** disposeImpl(dispose: $dispose)');
     if (location == Location.registry || isRegisteredInheritedModel.value) {
+      debugPrint('******** disposeImpl unregistering...');
       Bilocator.unregister<T>(name: name, dispose: false);
     }
     if (dispose) {
@@ -346,9 +353,19 @@ class _LazyInitializer<T extends Object> {
   }
 
   void dispose() {
+    debugPrint('******** _LazyInitialized.dispose() hasInitialized: $hasInitialized');
     if (hasInitialized && instance is ChangeNotifier) {
+      debugPrint('******** _LazyInitialized.dispose() disposing...');
       (instance as ChangeNotifier).dispose();
     }
+  }
+}
+
+void _maybeDisposeChangeNotifier(Object object) {
+  debugPrint('******** _maybeDisposeChangeNotifier');
+  if (object is ChangeNotifier) {
+    debugPrint('******** _disposeChangeNotifier');
+    object.dispose();
   }
 }
 
