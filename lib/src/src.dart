@@ -189,6 +189,8 @@ class Bilocator<T extends Object> extends StatefulWidget {
   /// returns a String? that specifies which name to select. However, GetIt does not support multiple registrations of
   /// the same type in a list that you can filter. If you need multiple same-type registrations, register them with
   /// unique `instanceName`s and retrieve the exact one.
+  @Deprecated("For registry operations, Bilocator now uses GetIt under the hood. So, instead of "
+      "'Bilocator.get' use 'GetIt.I.get'")
   static T get<T extends Object>({String? name, Filter? filter}) {
     assert(
       name == null || filter == null,
