@@ -543,12 +543,15 @@ mixin Notifiable<T extends StatefulWidget> on State<T> {
 
   /// See [Observer.listenTo] for information on parameters.
   U listenTo<U extends Listenable>({
+    BuildContext? context,
+    @Deprecated("Pass the current context instead of using 'Location.tree' or pass nothing "
+        "to use the GetIt registry. This parameter will be removed in the next major version.")
     Location? location,
     String? name,
     U? notifier,
     Filter? filter,
   }) {
-    final contextValue = location == Location.tree ? context : null;
+    final contextValue = location == Location.tree ? this.context : context;
     return observerDelegate.listenTo(
       context: contextValue,
       notifier: notifier,
