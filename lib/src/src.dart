@@ -50,8 +50,8 @@ class Bilocator<T extends Object> extends StatefulWidget {
   // Reference to the global GetIt instance used as our registry.
   static final GetIt getIt = GetIt.instance;
 
-  @Deprecated("Bilocator now uses GetIt under the hood. So, instead of 'Bilocator.register' use "
-      "'GetIt.I.registerLazySingleton'")
+  @Deprecated("For registry operations, Bilocator now uses GetIt under the hood. So, instead of 'Bilocator.register' "
+      "use 'GetIt.I.registerLazySingleton'")
   static void register<T extends Object>({
     T? instance,
     T Function()? builder,
@@ -116,8 +116,8 @@ class Bilocator<T extends Object> extends StatefulWidget {
         instanceName: combinedName, dispose: _maybeDisposeChangeNotifier);
   }
 
-  @Deprecated("Bilocator now uses GetIt under the hood. So, instead of 'Bilocator.unregister' use "
-      "'GetIt.I.unregister'")
+  @Deprecated("For registry operations, Bilocator now uses GetIt under the hood. So, instead of 'Bilocator.unregister' "
+      "use 'GetIt.I.unregister'")
   static void unregister<T extends Object>({
     String? name,
     bool dispose = true,

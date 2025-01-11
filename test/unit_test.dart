@@ -21,7 +21,7 @@ void main() {
   group('Object', () {
     test('unnamed model instance', () {
       expect(Bilocator.isRegistered<MyModel>(), false);
-      Bilocator.register<MyModel>(instance: MyModel());
+      GetIt.I.registerSingleton<MyModel>(MyModel());
       expect(Bilocator.isRegistered<MyModel>(), true);
       expect(Bilocator.get<MyModel>().answer, 42);
       GetIt.I.unregister<MyModel>();
@@ -32,7 +32,7 @@ void main() {
     test('named model instance', () {
       String name = 'Some name';
       expect(Bilocator.isRegistered<MyModel>(), false);
-      Bilocator.register<MyModel>(instance: MyModel(), name: name);
+      GetIt.I.registerSingleton<MyModel>(MyModel(), instanceName: name);
       expect(Bilocator.isRegistered<MyModel>(), false);
       expect(Bilocator.isRegistered<MyModel>(name: name), true);
       expect(Bilocator.get<MyModel>(name: name).answer, 42);
@@ -43,7 +43,7 @@ void main() {
     });
 
     test('unnamed model builder', () {
-      Bilocator.register<MyModel>(builder: () => MyModel());
+      GetIt.I.registerLazySingleton<MyModel>(() => MyModel());
       expect(Bilocator.isRegistered<MyModel>(), true);
       GetIt.I.unregister<MyModel>();
       expect(Bilocator.isRegistered<MyModel>(), false);
@@ -52,7 +52,7 @@ void main() {
     test('named model builder', () {
       String name = 'Some name';
       expect(Bilocator.isRegistered<MyModel>(), false);
-      Bilocator.register<MyModel>(builder: () => MyModel(), name: name);
+      GetIt.I.registerLazySingleton<MyModel>(() => MyModel(), instanceName: name);
       expect(Bilocator.isRegistered<MyModel>(), false);
       expect(Bilocator.isRegistered<MyModel>(name: name), true);
       GetIt.I.unregister<MyModel>(instanceName: name);
@@ -63,7 +63,11 @@ void main() {
   group('ChangeNotifier', () {
     test('dispose called', () {
       bool disposeCalled = false;
-      Bilocator.register<MyChangeNotifier>(instance: MyChangeNotifier(() => disposeCalled = true));
+      final myChangeNotifier = MyChangeNotifier(() => disposeCalled = true);
+      GetIt.I.registerSingleton<MyChangeNotifier>(
+        myChangeNotifier,
+        dispose: (_) => myChangeNotifier.dispose(),
+      );
       expect(Bilocator.isRegistered<MyChangeNotifier>(), true);
       Bilocator.get<MyChangeNotifier>();
       GetIt.I.unregister<MyChangeNotifier>();
@@ -72,7 +76,7 @@ void main() {
 
     test('dispose not called', () {
       bool disposeCalled = false;
-      Bilocator.register<MyChangeNotifier>(instance: MyChangeNotifier(() => disposeCalled = true));
+      GetIt.I.registerSingleton<MyChangeNotifier>(MyChangeNotifier(() => disposeCalled = true));
       expect(Bilocator.isRegistered<MyChangeNotifier>(), true);
       GetIt.I.unregister<MyChangeNotifier>(disposingFunction: null);
       expect(disposeCalled, false);
