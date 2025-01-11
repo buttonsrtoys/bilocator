@@ -2,6 +2,7 @@ import 'package:approved/approved.dart';
 import 'package:bilocator/src/src.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 
 const _number = 42;
 const _incrementButtonText = 'Increment';
@@ -75,7 +76,7 @@ class _MyObserverWidgetState extends State<MyObserverWidget> with Observer {
   }
 
   MyModel getModel(BuildContext context) {
-    return widget.location == Location.tree ? context.get<MyModel>() : Bilocator.get<MyModel>();
+    return widget.location == Location.tree ? context.get<MyModel>() : GetIt.I.get<MyModel>();
   }
 
   MyModel listenToModel(BuildContext context) {
@@ -106,7 +107,7 @@ void main() {
 
   tearDown(() {
     /// Ensure no residuals
-    expect(Bilocator.isRegistered<MyModel>(), false);
+    expect(GetIt.I.isRegistered<MyModel>(), false);
     expect(numberOfModelsThatNeedDispose, 0);
   });
 
@@ -122,8 +123,7 @@ void main() {
     testWidgets('not listening to registered Bilocator does not rebuild widget', (WidgetTester tester) async {
       await tester.pumpWidget(testApp(location: Location.registry, listen: false));
 
-      expect(Bilocator.isRegistered<MyModel>(), true);
-      // expect(find.text('$_number'), findsOneWidget);
+      expect(GetIt.I.isRegistered<MyModel>(), true);
 
       tester.approvalTest('before tap');
 
@@ -131,13 +131,12 @@ void main() {
       await tester.pump();
 
       tester.approvalTest('after tap');
-      // expect(find.text('$_number'), findsOneWidget);
     });
 
     testWidgets('listening to registered Bilocator rebuilds widget', (WidgetTester tester) async {
       await tester.pumpWidget(testApp(location: Location.registry, listen: true));
 
-      expect(Bilocator.isRegistered<MyModel>(), true);
+      expect(GetIt.I.isRegistered<MyModel>(), true);
       expect(find.text('$_number'), findsOneWidget);
 
       await tester.tap(find.text(_incrementButtonText));
@@ -149,7 +148,7 @@ void main() {
     testWidgets('not listening to inherited Bilocator does not rebuild widget', (WidgetTester tester) async {
       await tester.pumpWidget(testApp(location: Location.tree, listen: false));
 
-      expect(Bilocator.isRegistered<MyModel>(), false);
+      expect(GetIt.I.isRegistered<MyModel>(), false);
       expect(find.text('$_number'), findsOneWidget);
 
       await tester.tap(find.text(_incrementButtonText));
@@ -172,13 +171,13 @@ void main() {
     testWidgets('register and unregister inherited model', (WidgetTester tester) async {
       await tester.pumpWidget(testApp(location: Location.tree, listen: true));
 
-      expect(Bilocator.isRegistered<MyModel>(), false);
+      expect(GetIt.I.isRegistered<MyModel>(), false);
       expect(find.text('$_number'), findsOneWidget);
 
       await tester.tap(find.text(_registerButtonText));
       await tester.pump();
 
-      expect(Bilocator.isRegistered<MyModel>(), true);
+      expect(GetIt.I.isRegistered<MyModel>(), true);
 
       await tester.tap(find.text(_incrementButtonText));
       await tester.pump();

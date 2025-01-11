@@ -69,7 +69,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
     T Function()? builder,
     String? name,
   }) {
-    if (Bilocator.isRegistered<T>(name: name)) {
+    if (GetIt.I.isRegistered<T>(instanceName: name)) {
       throw Exception(
         'Bilocator tried to register an instance of type $T with name $name but it is already registered. Possible '
         'causes:\n'
@@ -129,7 +129,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
   ///
   /// If [T] is a ChangeNotifier then its `dispose()` method is called if [dispose] is true
   static void _unregister<T extends Object>({String? name, bool dispose = true}) {
-    if (!Bilocator.isRegistered<T>(name: name)) {
+    if (!GetIt.I.isRegistered<T>(instanceName: name)) {
       throw Exception(
         'Bilocator tried to unregister an instance of type $T with name $name but it is not registered. Possible '
         'causes:\n'
@@ -170,6 +170,8 @@ class Bilocator<T extends Object> extends StatefulWidget {
   }
 
   /// Determines whether an [Object] is registered and therefore retrievable with [Bilocator.get]
+  @Deprecated("For registry operations, Bilocator now uses GetIt under the hood. So, instead of "
+      "'Bilocator.isRegistered' use 'GetIt.I.isRegistered'")
   static bool isRegistered<T extends Object>({String? name}) {
     return getIt.isRegistered<T>(instanceName: name);
   }
@@ -199,7 +201,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
         'Use unique instanceName for each registration instead.\n',
       );
     }
-    if (!isRegistered<T>(name: name)) {
+    if (!GetIt.I.isRegistered<T>(instanceName: name)) {
       throw Exception(
         'Bilocator tried to get an instance of type $T with name $name but it is not registered. Possible causes:\n'
         ' - Data was stored in the widget tree using `location: Location.tree` so not found in the registry. See the '
