@@ -50,11 +50,21 @@ class Bilocator<T extends Object> extends StatefulWidget {
   // Reference to the global GetIt instance used as our registry.
   static final GetIt getIt = GetIt.instance;
 
+  @Deprecated("Bilocator now uses GetIt under the hood. So, instead of 'Bilocator.register' use "
+      "'GetIt.I.registerLazySingleton'")
+  static void register<T extends Object>({
+    T? instance,
+    T Function()? builder,
+    String? name,
+  }) {
+    _register(instance: instance, builder: builder, name: name);
+  }
+
   /// Register an [Object] for retrieving with [Bilocator.get]
   ///
-  /// [Bilocator] and [Bilocators] automatically call [register] and [unregister] so this function
+  /// [Bilocator] and [Bilocators] automatically call [_register] and [_unregister] so this function
   /// is not typically used. It is only used to manually register or unregister an [Object].
-  static void register<T extends Object>({
+  static void _register<T extends Object>({
     T? instance,
     T Function()? builder,
     String? name,
@@ -88,7 +98,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
 
   /// Register by runtimeType for when compiled type is not available.
   ///
-  /// [register] is preferred. However, use when type is not known at compile time (e.g., a super-class is registering a
+  /// [_register] is preferred. However, use when type is not known at compile time (e.g., a super-class is registering a
   /// sub-class).
   ///
   /// [instance] is registered by runtimeType return by [instance.runtimeType]
@@ -106,10 +116,19 @@ class Bilocator<T extends Object> extends StatefulWidget {
         instanceName: combinedName, dispose: _maybeDisposeChangeNotifier);
   }
 
+  @Deprecated("Bilocator now uses GetIt under the hood. So, instead of 'Bilocator.unregister' use "
+      "'GetIt.I.unregister'")
+  static void unregister<T extends Object>({
+    String? name,
+    bool dispose = true,
+  }) {
+    _unregister<T>(name: name, dispose: dispose);
+  }
+
   /// Unregister an [Object] so that it can no longer be retrieved with [Bilocator.get]
   ///
   /// If [T] is a ChangeNotifier then its `dispose()` method is called if [dispose] is true
-  static void unregister<T extends Object>({String? name, bool dispose = true}) {
+  static void _unregister<T extends Object>({String? name, bool dispose = true}) {
     if (!Bilocator.isRegistered<T>(name: name)) {
       throw Exception(
         'Bilocator tried to unregister an instance of type $T with name $name but it is not registered. Possible '
@@ -127,7 +146,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
 
   /// Unregister by runtimeType for when compiled type is not available.
   ///
-  /// [unregister] is preferred. However, use when type is not known at compile time (e.g., a super-class is
+  /// [_unregister] is preferred. However, use when type is not known at compile time (e.g., a super-class is
   /// unregistering a sub-class).
   ///
   /// [runtimeType] is value returned by [Object.runtimeType]
@@ -245,9 +264,11 @@ mixin BilocatorStateImpl<T extends Object> {
     T? instance,
     void Function(T)? onInitialization,
   }) {
+    assert(builder != null || instance != null, "A value must be passed for 'builder' or 'instance'");
     _lazyInitializer = _LazyInitializer<T>(builder: builder, instance: instance, onInitialization: onInitialization);
     if (location == Location.registry) {
-      Bilocator.register<T>(instance: instance, builder: builder, name: name);
+      Bilocator.getIt.registerLazySingleton<T>(builder ?? () => instance!,
+          instanceName: name, dispose: _maybeDisposeChangeNotifier);
     }
   }
 
@@ -257,7 +278,7 @@ mixin BilocatorStateImpl<T extends Object> {
     required bool dispose,
   }) {
     if (location == Location.registry || isRegisteredInheritedModel.value) {
-      Bilocator.unregister<T>(name: name, dispose: false);
+      Bilocator._unregister<T>(name: name, dispose: false);
     }
     if (dispose) {
       _lazyInitializer.dispose();
@@ -489,11 +510,11 @@ class BilocatorDelegate<T extends Object> {
   final bool dispose;
 
   void _register() {
-    Bilocator.register<T>(instance: instance, builder: builder, name: name);
+    Bilocator._register<T>(instance: instance, builder: builder, name: name);
   }
 
   void _unregister() {
-    Bilocator.unregister<T>(name: name, dispose: dispose);
+    Bilocator._unregister<T>(name: name, dispose: dispose);
   }
 }
 
@@ -646,17 +667,17 @@ mixin Observer {
   /// Registered inherited models are unregistered when their corresponding Bilocator widget is disposed.
   void register<T extends Object>(BuildContext context, {String? name}) {
     context._getInheritedWidget<T>().registered.value = true;
-    Bilocator.register<T>(instance: context.get<T>(), name: name);
+    Bilocator._register<T>(instance: context.get<T>(), name: name);
   }
 
   /// Unregisters models registered with [Observer.register].
   ///
-  /// [name] is the value given when registering. Note that unlike [Bilocator.unregister] this function does not call
+  /// [name] is the value given when registering. Note that unlike [Bilocator._unregister] this function does not call
   /// the dispose function of the object if it is a ChangeNotifier because it is unregistering an instance that still
   /// exists in the widget tree. I.e., it was created with Bilocator(location: Location.tree).
   void unregister<T extends Object>(BuildContext context, {String? name}) {
     context._getInheritedWidget<T>().registered.value = false;
-    Bilocator.unregister<T>(name: name, dispose: false);
+    Bilocator._unregister<T>(name: name, dispose: false);
   }
 
   /// Cancel all listener subscriptions.

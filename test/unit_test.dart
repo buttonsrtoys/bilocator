@@ -1,6 +1,7 @@
 import 'package:bilocator/src/src.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 
 class MyModel {
   final answer = 42;
@@ -23,10 +24,9 @@ void main() {
       Bilocator.register<MyModel>(instance: MyModel());
       expect(Bilocator.isRegistered<MyModel>(), true);
       expect(Bilocator.get<MyModel>().answer, 42);
-      Bilocator.unregister<MyModel>();
+      GetIt.I.unregister<MyModel>();
       expect(Bilocator.isRegistered<MyModel>(), false);
       expect(() => Bilocator.get<MyModel>(), throwsA(isA<Exception>()));
-      expect(() => Bilocator.unregister<MyModel>(), throwsA(isA<Exception>()));
     });
 
     test('named model instance', () {
@@ -36,17 +36,16 @@ void main() {
       expect(Bilocator.isRegistered<MyModel>(), false);
       expect(Bilocator.isRegistered<MyModel>(name: name), true);
       expect(Bilocator.get<MyModel>(name: name).answer, 42);
-      Bilocator.unregister<MyModel>(name: name);
+      GetIt.I.unregister<MyModel>(instanceName: name);
       expect(Bilocator.isRegistered<MyModel>(), false);
       expect(Bilocator.isRegistered<MyModel>(name: name), false);
       expect(() => Bilocator.get<MyModel>(name: name), throwsA(isA<Exception>()));
-      expect(() => Bilocator.unregister<MyModel>(name: name), throwsA(isA<Exception>()));
     });
 
     test('unnamed model builder', () {
       Bilocator.register<MyModel>(builder: () => MyModel());
       expect(Bilocator.isRegistered<MyModel>(), true);
-      Bilocator.unregister<MyModel>();
+      GetIt.I.unregister<MyModel>();
       expect(Bilocator.isRegistered<MyModel>(), false);
     });
 
@@ -56,7 +55,7 @@ void main() {
       Bilocator.register<MyModel>(builder: () => MyModel(), name: name);
       expect(Bilocator.isRegistered<MyModel>(), false);
       expect(Bilocator.isRegistered<MyModel>(name: name), true);
-      Bilocator.unregister<MyModel>(name: name);
+      GetIt.I.unregister<MyModel>(instanceName: name);
       expect(Bilocator.isRegistered<MyModel>(name: name), false);
     });
   });
@@ -67,7 +66,7 @@ void main() {
       Bilocator.register<MyChangeNotifier>(instance: MyChangeNotifier(() => disposeCalled = true));
       expect(Bilocator.isRegistered<MyChangeNotifier>(), true);
       Bilocator.get<MyChangeNotifier>();
-      Bilocator.unregister<MyChangeNotifier>();
+      GetIt.I.unregister<MyChangeNotifier>();
       expect(disposeCalled, true);
     });
 
@@ -75,7 +74,7 @@ void main() {
       bool disposeCalled = false;
       Bilocator.register<MyChangeNotifier>(instance: MyChangeNotifier(() => disposeCalled = true));
       expect(Bilocator.isRegistered<MyChangeNotifier>(), true);
-      Bilocator.unregister<MyChangeNotifier>(dispose: false);
+      GetIt.I.unregister<MyChangeNotifier>(disposingFunction: null);
       expect(disposeCalled, false);
     });
   });
