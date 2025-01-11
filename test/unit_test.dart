@@ -1,8 +1,9 @@
-import 'package:bilocator/src/src.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 
+/// These tests used to use Bilocator registry functions but were refactored to use GetIt. So, they're not
+/// useful tests, but I'm leaving them for reference.
 class MyModel {
   final answer = 42;
 }
@@ -19,44 +20,53 @@ class MyChangeNotifier extends ChangeNotifier {
 
 void main() {
   group('Object', () {
-    test('unnamed model instance', () {
-      expect(Bilocator.isRegistered<MyModel>(), false);
+    test('unnamed model throws on register if already registered ', () {
+      expect(GetIt.I.isRegistered<MyModel>(), false);
       GetIt.I.registerSingleton<MyModel>(MyModel());
-      expect(Bilocator.isRegistered<MyModel>(), true);
-      expect(Bilocator.get<MyModel>().answer, 42);
+      expect(GetIt.I.isRegistered<MyModel>(), true);
+      expect(() => GetIt.I.registerSingleton<MyModel>(MyModel()), throwsA(isA<ArgumentError>()));
       GetIt.I.unregister<MyModel>();
-      expect(Bilocator.isRegistered<MyModel>(), false);
-      expect(() => Bilocator.get<MyModel>(), throwsA(isA<Exception>()));
+      expect(GetIt.I.isRegistered<MyModel>(), false);
+    });
+
+    test('unnamed model instance', () {
+      expect(GetIt.I.isRegistered<MyModel>(), false);
+      GetIt.I.registerSingleton<MyModel>(MyModel());
+      expect(GetIt.I.isRegistered<MyModel>(), true);
+      expect(GetIt.I.get<MyModel>().answer, 42);
+      GetIt.I.unregister<MyModel>();
+      expect(GetIt.I.isRegistered<MyModel>(), false);
+      expect(() => GetIt.I.get<MyModel>(), throwsA(isA<StateError>()));
     });
 
     test('named model instance', () {
       String name = 'Some name';
-      expect(Bilocator.isRegistered<MyModel>(), false);
+      expect(GetIt.I.isRegistered<MyModel>(), false);
       GetIt.I.registerSingleton<MyModel>(MyModel(), instanceName: name);
-      expect(Bilocator.isRegistered<MyModel>(), false);
-      expect(Bilocator.isRegistered<MyModel>(name: name), true);
-      expect(Bilocator.get<MyModel>(name: name).answer, 42);
+      expect(GetIt.I.isRegistered<MyModel>(), false);
+      expect(GetIt.I.isRegistered<MyModel>(instanceName: name), true);
+      expect(GetIt.I.get<MyModel>(instanceName: name).answer, 42);
       GetIt.I.unregister<MyModel>(instanceName: name);
-      expect(Bilocator.isRegistered<MyModel>(), false);
-      expect(Bilocator.isRegistered<MyModel>(name: name), false);
-      expect(() => Bilocator.get<MyModel>(name: name), throwsA(isA<Exception>()));
+      expect(GetIt.I.isRegistered<MyModel>(), false);
+      expect(GetIt.I.isRegistered<MyModel>(instanceName: name), false);
+      expect(() => GetIt.I.get<MyModel>(instanceName: name), throwsA(isA<StateError>()));
     });
 
     test('unnamed model builder', () {
       GetIt.I.registerLazySingleton<MyModel>(() => MyModel());
-      expect(Bilocator.isRegistered<MyModel>(), true);
+      expect(GetIt.I.isRegistered<MyModel>(), true);
       GetIt.I.unregister<MyModel>();
-      expect(Bilocator.isRegistered<MyModel>(), false);
+      expect(GetIt.I.isRegistered<MyModel>(), false);
     });
 
     test('named model builder', () {
       String name = 'Some name';
-      expect(Bilocator.isRegistered<MyModel>(), false);
+      expect(GetIt.I.isRegistered<MyModel>(), false);
       GetIt.I.registerLazySingleton<MyModel>(() => MyModel(), instanceName: name);
-      expect(Bilocator.isRegistered<MyModel>(), false);
-      expect(Bilocator.isRegistered<MyModel>(name: name), true);
+      expect(GetIt.I.isRegistered<MyModel>(), false);
+      expect(GetIt.I.isRegistered<MyModel>(instanceName: name), true);
       GetIt.I.unregister<MyModel>(instanceName: name);
-      expect(Bilocator.isRegistered<MyModel>(name: name), false);
+      expect(GetIt.I.isRegistered<MyModel>(instanceName: name), false);
     });
   });
 
@@ -68,8 +78,8 @@ void main() {
         myChangeNotifier,
         dispose: (_) => myChangeNotifier.dispose(),
       );
-      expect(Bilocator.isRegistered<MyChangeNotifier>(), true);
-      Bilocator.get<MyChangeNotifier>();
+      expect(GetIt.I.isRegistered<MyChangeNotifier>(), true);
+      GetIt.I.get<MyChangeNotifier>();
       GetIt.I.unregister<MyChangeNotifier>();
       expect(disposeCalled, true);
     });
@@ -77,7 +87,7 @@ void main() {
     test('dispose not called', () {
       bool disposeCalled = false;
       GetIt.I.registerSingleton<MyChangeNotifier>(MyChangeNotifier(() => disposeCalled = true));
-      expect(Bilocator.isRegistered<MyChangeNotifier>(), true);
+      expect(GetIt.I.isRegistered<MyChangeNotifier>(), true);
       GetIt.I.unregister<MyChangeNotifier>(disposingFunction: null);
       expect(disposeCalled, false);
     });
