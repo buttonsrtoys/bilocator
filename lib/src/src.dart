@@ -60,7 +60,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
     _register(instance: instance, builder: builder, name: name);
   }
 
-  /// Register an [Object] for retrieving with [Bilocator.get]
+  /// Register an [Object] for retrieving with [GetIt.I.get]
   ///
   /// [Bilocator] and [Bilocators] automatically call [_register] and [_unregister] so this function
   /// is not typically used. It is only used to manually register or unregister an [Object].
@@ -125,7 +125,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
     _unregister<T>(name: name, dispose: dispose);
   }
 
-  /// Unregister an [Object] so that it can no longer be retrieved with [Bilocator.get]
+  /// Unregister an [Object] so that it can no longer be retrieved with [GetIt.I.get]
   ///
   /// If [T] is a ChangeNotifier then its `dispose()` method is called if [dispose] is true
   static void _unregister<T extends Object>({String? name, bool dispose = true}) {
@@ -176,7 +176,7 @@ class Bilocator<T extends Object> extends StatefulWidget {
     return getIt.isRegistered<T>(instanceName: name);
   }
 
-  /// Determines whether an [Object] is registered and therefore retrievable with [Bilocator.get]
+  /// Determines whether an [Object] is registered and therefore retrievable with [GetIt.I.get]
   static bool isRegisteredByRuntimeType({required Type runtimeType, String? name}) {
     final combinedName = _combinedName(runtimeType, name);
     return getIt.isRegistered<Object>(instanceName: combinedName);
@@ -433,7 +433,7 @@ class _UniqueKeysManager {
 
 final _uniqueKeysManager = _UniqueKeysManager();
 
-/// Register multiple Objects so they can be retrieved with [Bilocator.get]
+/// Register multiple Objects so they can be retrieved with [GetIt.I.get]
 ///
 /// [Bilocators] only uses [Location.registry] and does not add a widget to the widget tree per [Location.tree].
 ///
@@ -632,8 +632,8 @@ mixin Observer {
   }) {
     assert(toOne(context) + toOne(notifier) + toOne(name) <= 1,
         'listenTo can only receive non-null for "context", "notifier", or "name" but not two or more can be non-null.');
-    final notifierInstance =
-        context == null ? notifier ?? Bilocator.get<T>(name: name, filter: filter) : context.get<T>();
+    assert(filter == null, "Due to incompatibilities with GetIt, the 'filter' parameter is no longer available");
+    final notifierInstance = context == null ? notifier ?? GetIt.I.get<T>(instanceName: name) : context.get<T>();
     final subscription = _Subscription(listenable: notifierInstance, listener: listener);
     if (!_subscriptions.contains(subscription)) {
       subscription.subscribe();
@@ -648,7 +648,7 @@ mixin Observer {
   /// If [context] is non-null, gets an inherited model from an ancestor located by context.
   /// [name] is the used when locating a single service but not an inherited model.
   /// [filter] is a custom function that receives a list of the names of all the registered objects of type [T] and
-  /// returns a String? that specifies which name to select. See [Bilocator.get] for more info.
+  /// returns a String? that specifies which name to select. See [GetIt.I.get] for more info.
   @protected
   T get<T extends Object>({
     BuildContext? context,
@@ -657,8 +657,9 @@ mixin Observer {
   }) {
     assert(context == null || name == null,
         '"get" was passed a non-null value for "name" but cannot locate an inherited model by name.');
+    assert(filter == null, "Due to incompatibilities with GetIt, the 'filter' parameter is no longer available");
     if (context == null) {
-      return Bilocator.get<T>(name: name, filter: filter);
+      return GetIt.I.get<T>(instanceName: name);
     } else {
       return context.get<T>();
     }
