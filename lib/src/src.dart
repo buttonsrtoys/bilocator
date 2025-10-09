@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 
 typedef Filter = String? Function(List<String?>);
 
+/// Location to place the model (registry = singleton, tree = widget tree)
 enum Location {
   registry,
   tree,
